@@ -1,158 +1,243 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const { Booking, Availability } = require('./models.js');
+const jwt = require('jsonwebtoken');
+const argon2 = require('argon2');
+const crypto = require('crypto');
+const { User, Booking, Availability } = require('./models');
+const sendEmail = require('./emailService');
 
 const router = express.Router();
 
-/**
- * =============================================================================
- * GET /api/availability
- * =============================================================================
- * Fetches the class availability for the next 14 days.
- * This version uses an atomic "upsert" operation to prevent race conditions
- * and explicitly uses UTC for all date operations to avoid timezone issues.
- */
-router.get('/availability', async (req, res) => {
+// --- Helper to sign JWT ---
+const signToken = (id) => {
+  return jwt.sign({ id }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRES_IN,
+  });
+};
+
+// --- Middleware to Protect Routes ---
+const protect = async (req, res, next) => {
+  let token;
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    token = req.headers.authorization.split(' ')[1];
+  }
+
+  if (!token) {
+    return res.status(401).json({ message: 'Not authorized. Please log in.' });
+  }
+
   try {
-    // Create a date for today at midnight UTC to ensure consistency
-    const now = new Date();
-    const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-
-    const dates = Array.from({ length: 14 }, (_, i) => {
-      const date = new Date(today);
-      // Use setUTCDate to safely increment the day in UTC
-      date.setUTCDate(today.getUTCDate() + i);
-      return date;
-    });
-
-    // --- Atomic Find-or-Create using bulkWrite with upsert ---
-    const bulkOps = dates.map(date => ({
-      updateOne: {
-        filter: { date }, // The unique key to find a document by
-        update: {
-          $setOnInsert: {
-            date: date,
-            timeSlots: new Availability().timeSlots
-          }
-        },
-        upsert: true // If no doc matches 'filter', create it
-      }
-    }));
-
-    if (bulkOps.length > 0) {
-      await Availability.bulkWrite(bulkOps);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const currentUser = await User.findById(decoded.id);
+    if (!currentUser) {
+      return res.status(401).json({ message: 'The user for this token no longer exists.' });
     }
-    
-    // Now that we're guaranteed all 14 days exist, we can safely fetch them.
-    const availabilities = await Availability.find({ date: { $in: dates } }).sort({ date: 'asc' });
+    req.user = currentUser;
+    next();
+  } catch (error) {
+    return res.status(401).json({ message: 'Invalid token. Please log in again.' });
+  }
+};
 
-    // Format the response for the frontend
-    const responsePayload = {};
-    availabilities.forEach(doc => {
-      const dateString = doc.date.toISOString().split('T')[0];
-      responsePayload[dateString] = Object.fromEntries(doc.timeSlots);
+// --- AUTHENTICATION ROUTES ---
+
+router.post('/register', async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: 'Please provide name, email, and password.' });
+    }
+
+    const newUser = await User.create({ name, email, password });
+
+    const token = signToken(newUser._id);
+
+    newUser.password = undefined;
+
+    res.status(201).json({
+      status: 'success',
+      token,
+      data: { user: newUser },
+    });
+  } catch (error) {
+    if (error.code === 11000) {
+      return res.status(400).json({ message: 'An account with this email already exists.' });
+    }
+    console.error("Registration Error:", error);
+    res.status(500).json({ message: 'Error creating account.' });
+  }
+});
+
+router.post('/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Please provide email and password.' });
+    }
+
+    const user = await User.findOne({ email }).select('+password');
+
+    if (!user || !(await argon2.verify(user.password, password))) {
+      return res.status(401).json({ message: 'Incorrect email or password.' });
+    }
+
+    const token = signToken(user._id);
+    user.password = undefined;
+
+    res.status(200).json({
+      status: 'success',
+      token,
+      data: { user },
+    });
+  } catch (error) {
+      console.error("Login Error:", error);
+      res.status(500).json({ message: 'An error occurred during login.' });
+  }
+});
+
+router.post('/forgot-password', async (req, res) => {
+  const user = await User.findOne({ email: req.body.email });
+  if (!user) {
+    // To prevent email enumeration, always send a success-like response.
+    return res.status(200).json({ message: 'If an account with that email exists, a password reset link has been sent.' });
+  }
+
+  const resetToken = user.getResetPasswordToken();
+  await user.save({ validateBeforeSave: false });
+
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
+  const resetURL = `${frontendUrl}/reset-password/${resetToken}`;
+
+  const message = `Forgot your password? Click the link to reset it: \n\n${resetURL}\n\nThis link is valid for 10 minutes. If you didn't request this, please ignore this email.`;
+
+  try {
+    await sendEmail({
+      email: user.email,
+      subject: 'Your Password Reset Token',
+      message,
+    });
+    res.status(200).json({ message: 'A password reset link has been sent to your email.' });
+  } catch (err) {
+    console.error('Email sending error:', err);
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+    await user.save({ validateBeforeSave: false });
+    res.status(500).json({ message: 'There was an error sending the email. Please try again later.' });
+  }
+});
+
+router.put('/reset-password/:token', async (req, res) => {
+  try {
+    const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
+
+    const user = await User.findOne({
+      resetPasswordToken: hashedToken,
+      resetPasswordExpire: { $gt: Date.now() },
     });
 
-    res.status(200).json(responsePayload);
-  } catch (error) {
-    console.error('Error fetching availability:', error);
-    res.status(500).json({ message: 'Failed to retrieve class availability.' });
+    if (!user) {
+      return res.status(400).json({ message: 'Token is invalid or has expired.' });
+    }
+
+    user.password = req.body.password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+    await user.save();
+
+    const token = signToken(user._id);
+    res.status(200).json({ status: 'success', token });
+  } catch(error) {
+    console.error("Password Reset Error:", error);
+    res.status(500).json({ message: 'An error occurred while resetting the password.' });
   }
 });
 
 
-/**
- * =============================================================================
- * POST /api/bookings
- * =============================================================================
- * Creates a new booking. This version also ensures dates are handled in UTC.
- */
-router.post('/bookings', async (req, res) => {
-  const { userId, planId, selectedClasses, totalCost, currency, paymentAuthorized } = req.body;
+// --- SCHEDULING & BOOKING ROUTES ---
 
-  if (!userId || !planId || !selectedClasses || selectedClasses.length === 0) {
-    return res.status(400).json({ message: 'Missing required booking information.' });
-  }
-
-  // Helper to create a UTC date from a 'YYYY-MM-DD' string
-  const createUTCDate = (dateString) => {
-    const parts = dateString.split('-').map(p => parseInt(p, 10));
-    return new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
-  };
-
-  if (process.env.DB_TRANSACTIONS_ENABLED === 'true') {
-    // --- Transactional Path (for Replica Sets / Clusters) ---
-    const session = await mongoose.startSession();
-    session.startTransaction();
+router.get('/availability', async (req, res) => {
     try {
-      for (const classSlot of selectedClasses) {
-        const slotDate = createUTCDate(classSlot.date); // Use UTC helper
-        const availability = await Availability.findOne({ date: slotDate }).session(session);
+        const today = new Date();
+        today.setUTCHours(0, 0, 0, 0);
 
-        if (!availability || availability.timeSlots.get(classSlot.time) < 1) {
-          throw new Error(`The slot for ${classSlot.date} at ${classSlot.time} is no longer available.`);
-        }
-      }
+        const datesToEnsure = Array.from({ length: 14 }, (_, i) => {
+            const date = new Date(today);
+            date.setUTCDate(today.getUTCDate() + i);
+            return date;
+        });
 
-      const updatePromises = selectedClasses.map(classSlot => {
-        const slotDate = createUTCDate(classSlot.date); // Use UTC helper
-        const updateField = `timeSlots.${classSlot.time}`;
-        return Availability.updateOne(
-          { date: slotDate },
-          { $inc: { [updateField]: -1 } },
-          { session }
-        );
-      });
-      await Promise.all(updatePromises);
+        const bulkOps = datesToEnsure.map(date => ({
+            updateOne: {
+                filter: { date: date },
+                update: { $setOnInsert: { date: date } },
+                upsert: true,
+            },
+        }));
 
-      const newBooking = new Booking({ userId, planId, selectedClasses, totalCost, currency, paymentAuthorized });
-      await newBooking.save({ session });
+        await Availability.bulkWrite(bulkOps);
 
-      await session.commitTransaction();
-      res.status(201).json({ message: 'Booking successful!', booking: newBooking });
+        const endDate = new Date(datesToEnsure[datesToEnsure.length - 1]);
+        endDate.setUTCDate(endDate.getUTCDate() + 1);
 
+        const availabilities = await Availability.find({
+            date: { $gte: today, $lt: endDate }
+        }).sort({ date: 'asc' });
+
+        const formattedAvailability = {};
+        availabilities.forEach(doc => {
+            const dateKey = doc.date.toISOString().split('T')[0];
+            formattedAvailability[dateKey] = Object.fromEntries(doc.timeSlots);
+        });
+
+        res.status(200).json(formattedAvailability);
     } catch (error) {
-      await session.abortTransaction();
-      console.error('Booking transaction failed:', error);
-      res.status(400).json({ message: error.message || 'Booking failed. Please try again.' });
-    } finally {
-      session.endSession();
+        console.error('Error fetching availability:', error);
+        res.status(500).json({ message: "Failed to retrieve class availability." });
     }
-  } else {
-    // --- Non-Transactional Path (for Standalone MongoDB) ---
+});
+
+
+router.post('/bookings', protect, async (req, res) => {
+    const { planId, selectedClasses, totalCost, currency } = req.body;
+
+    if (!planId || !selectedClasses || !selectedClasses.length) {
+        return res.status(400).json({ message: 'Missing required booking information.' });
+    }
+
     try {
-      for (const classSlot of selectedClasses) {
-        const slotDate = createUTCDate(classSlot.date); // Use UTC helper
-        const availability = await Availability.findOne({ date: slotDate });
-        if (!availability || availability.timeSlots.get(classSlot.time) < 1) {
-          throw new Error(`The slot for ${classSlot.date} at ${classSlot.time} is no longer available.`);
+        const updatePromises = selectedClasses.map(classSlot => {
+            const createUTCDate = (dateString) => {
+                const [year, month, day] = dateString.split('-').map(Number);
+                return new Date(Date.UTC(year, month - 1, day));
+            };
+            const slotDate = createUTCDate(classSlot.date);
+            const updateField = `timeSlots.${classSlot.time}`;
+            return Availability.updateOne(
+                { date: slotDate, [updateField]: { $gt: 0 } },
+                { $inc: { [updateField]: -1 } }
+            );
+        });
+
+        const updateResults = await Promise.all(updatePromises);
+        if (updateResults.some(result => result.modifiedCount === 0)) {
+            throw new Error('One or more of your selected time slots were just booked. Please revise your schedule.');
         }
-      }
 
-      const updatePromises = selectedClasses.map(classSlot => {
-        const slotDate = createUTCDate(classSlot.date); // Use UTC helper
-        const updateField = `timeSlots.${classSlot.time}`;
-        return Availability.updateOne(
-          { date: slotDate, [updateField]: { $gt: 0 } },
-          { $inc: { [updateField]: -1 } }
-        );
-      });
-      const updateResults = await Promise.all(updatePromises);
-      
-      if (updateResults.some(result => result.modifiedCount === 0)) {
-        throw new Error('One or more time slots were booked by another user. Please choose different slots.');
-      }
+        const newBooking = await Booking.create({
+            user: req.user._id,
+            planId,
+            selectedClasses,
+            totalCost,
+            currency,
+        });
 
-      const newBooking = new Booking({ userId, planId, selectedClasses, totalCost, currency, paymentAuthorized });
-      await newBooking.save();
-
-      res.status(201).json({ message: 'Booking successful!', booking: newBooking });
-
+        res.status(201).json({ message: 'Booking successful!', booking: newBooking });
     } catch (error) {
-      console.error('Booking failed (non-transactional):', error);
-      res.status(400).json({ message: error.message || 'Booking failed. Please try again.' });
+        console.error('Booking failed (non-transactional):', error);
+        res.status(400).json({ message: error.message || 'Booking failed. Please try again.' });
     }
-  }
 });
 
 module.exports = router;

@@ -1,112 +1,113 @@
 const mongoose = require('mongoose');
-const { Schema } = mongoose;
+const argon2 = require('argon2');
+const crypto = require('crypto');
 
-/**
- * =============================================================================
- * BOOKING SCHEMA
- * =============================================================================
- * This schema stores the details of each booking made by a user. It links a user
- * to the specific classes they've booked and the plan they purchased.
- */
-
-const BookingSchema = new Schema({
-  // A reference to the user who made the booking.
-  // In a full auth system, this might be a mongoose.Schema.Types.ObjectId ref.
-  // For now, the string ID from the frontend is sufficient.
-  userId: {
+// --- NEW: User Schema ---
+const UserSchema = new mongoose.Schema({
+  name: {
     type: String,
-    required: [true, 'User ID is required.'],
-    index: true, // Index for faster queries by user
+    required: [true, 'Please provide your name.'],
   },
-
-  // The ID of the purchased plan (e.g., 'plan1', 'plan5', 'plan10').
-  planId: {
+  email: {
     type: String,
-    required: [true, 'Plan ID is required.'],
-    enum: ['plan1', 'plan5', 'plan10'], // Ensures only valid plan IDs are stored
+    required: [true, 'Please provide an email.'],
+    unique: true,
+    lowercase: true,
+    match: [
+      /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
+      'Please provide a valid email address.',
+    ],
   },
-
-  // An array of the specific class slots the user has booked.
-  selectedClasses: [{
-    _id: false, // Don't create a separate _id for each class entry
-    date: {
-      type: Date,
-      required: true,
-    },
-    time: {
-      type: String, // e.g., "10:00 AM"
-      required: true,
-    }
-  }],
-
-  // The total cost of the booking.
-  totalCost: {
-    type: Number,
-    required: [true, 'Total cost is required.'],
-  },
-
-  // The currency of the payment.
-  currency: {
+  password: {
     type: String,
-    required: [true, 'Currency is required.'],
-    default: 'MXN',
+    required: [true, 'Please provide a password.'],
+    minlength: 8,
+    select: false, // Do not send the password in query results by default
   },
-
-  // A flag to indicate if the payment was successful.
-  // This would be set to true after a successful transaction with a payment gateway.
-  paymentAuthorized: {
-    type: Boolean,
-    default: false,
-  },
-
-}, {
-  // Automatically add 'createdAt' and 'updatedAt' fields to the document.
-  timestamps: true,
+  resetPasswordToken: String,
+  resetPasswordExpire: Date,
 });
 
+// Hash password before saving the user document
+UserSchema.pre('save', async function (next) {
+  // Only run this function if password was actually modified
+  if (!this.isModified('password')) return next();
 
-/**
- * =============================================================================
- * AVAILABILITY SCHEMA
- * =============================================================================
- * This schema stores the number of available slots for each time on a specific date.
- * Each document in this collection represents a single day's schedule.
- */
-const AvailabilitySchema = new Schema({
-  // The specific date for which availability is being tracked.
-  // It should be stored with the time part set to midnight (00:00:00) UTC
-  // to ensure uniqueness and easy lookups by date alone.
+  // Hash the password with a cost of 12
+  this.password = await argon2.hash(this.password);
+  next();
+});
+
+// Method to generate and hash password reset token
+UserSchema.methods.getResetPasswordToken = function () {
+  // Generate token
+  const resetToken = crypto.randomBytes(20).toString('hex');
+
+  // Hash token and set to resetPasswordToken field
+  this.resetPasswordToken = crypto
+    .createHash('sha256')
+    .update(resetToken)
+    .digest('hex');
+  
+  // Set expiration for 10 minutes from now
+  this.resetPasswordExpire = Date.now() + 10 * 60 * 1000;
+
+  return resetToken;
+};
+
+
+// --- Booking Schema (Updated) ---
+const BookingSchema = new mongoose.Schema({
+  // Link to the user who made the booking
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+  },
+  planId: {
+    type: String,
+    required: true,
+  },
+  selectedClasses: [{
+    date: { type: String, required: true },
+    time: { type: String, required: true },
+  }],
+  totalCost: {
+    type: Number,
+    required: true,
+  },
+  currency: {
+    type: String,
+    default: 'MXN',
+  },
+  bookingDate: {
+    type: Date,
+    default: Date.now,
+  },
+});
+
+const AvailabilitySchema = new mongoose.Schema({
   date: {
     type: Date,
     required: true,
-    unique: true, // Each date should have only one availability document
-    index: true,
+    unique: true,
   },
-
-  // A map to store the number of available slots for each time.
-  // The key is the time slot (e.g., "10:00 AM") and the value is the count.
-  // This is flexible, allowing you to add/remove time slots easily.
   timeSlots: {
     type: Map,
-    of: Number, // The values in the map must be numbers
-    required: true,
+    of: Number,
     default: {
-      '10:00 AM': 1, // Default to 1 slot per time if not specified
+      '10:00 AM': 1,
       '11:00 AM': 1,
       '1:00 PM': 1,
       '3:00 PM': 1,
       '5:00 PM': 1,
-    }
+    },
   },
 });
 
-
-// Create the models from the schemas
+const User = mongoose.model('User', UserSchema);
 const Booking = mongoose.model('Booking', BookingSchema);
 const Availability = mongoose.model('Availability', AvailabilitySchema);
 
-// Export the models for use in other parts of your application
-module.exports = {
-  Booking,
-  Availability,
-};
+module.exports = { User, Booking, Availability };
+
