@@ -1,0 +1,23 @@
+version: "3.9"
+services:
+  mongo:
+    image: mongo:7
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: supersecret
+      MONGO_INITDB_DATABASE: appdb
+    volumes:
+      - mongo_data:/data/db
+      - ./mongo-init:/docker-entrypoint-initdb.d
+    networks:
+      - appnet
+
+volumes:
+  mongo_data:
+
+networks:
+  appnet:
+    driver: bridge
