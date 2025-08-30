@@ -37,6 +37,25 @@ const coursePlans = {
   },
 };
 
+const testimonials = [
+    {
+        quote: "The classes are incredibly dynamic. I've learned more in one month here than in a year elsewhere! The native tutors are very patient.",
+        name: "Anna S.",
+        title: "Marketing Student"
+    },
+    {
+        quote: "The flexible scheduling is perfect for my agenda. I can book classes whenever it suits me, and the progress is noticeable. I highly recommend it.",
+        name: "Carlos G.",
+        title: "Software Developer"
+    },
+    {
+        quote: "I finally feel confident speaking English in my work meetings. The platform is easy to use, and the support is excellent.",
+        name: "Maria V.",
+        title: "Project Manager"
+    }
+];
+
+
 // --- Helper Components ---
 const Icon = ({ path, className = "w-6 h-6" }) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
@@ -99,7 +118,6 @@ const App = () => {
 
     // --- Effects for Initialization and Auth ---
 
-    // Effect to handle page routing based on URL
     useEffect(() => {
         const path = window.location.pathname;
         if (path.startsWith('/reset-password/')) {
@@ -111,7 +129,6 @@ const App = () => {
         }
     }, []);
 
-    // Effect to fetch user data if a token exists
     const fetchUser = useCallback(async (currentToken) => {
         if (currentToken) {
             try {
@@ -138,7 +155,6 @@ const App = () => {
         }
     }, [fetchUser]);
 
-    // Effect to fetch class availability
     useEffect(() => {
         const fetchAvailability = async () => {
             setIsLoading(true);
@@ -355,12 +371,12 @@ const App = () => {
         return (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {futureDates.map(date => {
-                    const dayOfWeek = new Date(date).toLocaleDateString('en-US', { weekday: 'long', timeZone: 'UTC' });
-                    const formattedDate = new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+                    const dayOfWeek = new Date(date + 'T00:00:00Z').toLocaleDateString('en-US', { weekday: 'long', timeZone: 'UTC' });
+                    const formattedDate = new Date(date + 'T00:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
                     
                     return (
                         <div key={date} className="bg-white/50 backdrop-blur-sm p-5 rounded-2xl border border-gray-200/80 shadow-md hover:shadow-lg transition-shadow duration-300">
-                            <h4 className="font-bold text-gray-800">{dayOfWeek}</h4>
+                            <h4 className="font-bold text-gray-800 capitalize">{dayOfWeek}</h4>
                             <p className="text-sm text-gray-500 mb-4">{formattedDate}</p>
                             <div className="grid grid-cols-2 gap-3">
                                 {timeSlots.map(time => {
@@ -394,7 +410,7 @@ const App = () => {
         if (page === 'forgotPassword') {
             return (
                 <div className="min-h-[60vh] flex items-center justify-center">
-                    <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-lg animate-fade-in-up">
+                    <div className="max-w-md w-full bg-white/80 backdrop-blur-lg p-8 rounded-2xl shadow-lg animate-fade-in-up">
                         <h2 className="text-2xl font-bold text-center text-slate-800 mb-2">Forgot Password</h2>
                         <p className="text-center text-slate-500 mb-6">Enter your email and we'll send you a reset link.</p>
                         <form onSubmit={handleForgotPassword} className="space-y-6">
@@ -415,8 +431,8 @@ const App = () => {
         if (page === 'resetPassword') {
             return (
                 <div className="min-h-[60vh] flex items-center justify-center">
-                    <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-lg animate-fade-in-up">
-                        <h2 className="text-2xl font-bold text-center text-slate-800 mb-2">Reset Your Password</h2>
+                    <div className="max-w-md w-full bg-white/80 backdrop-blur-lg p-8 rounded-2xl shadow-lg animate-fade-in-up">
+                        <h2 className="text-2xl font-bold text-center text-slate-800 mb-2">Reset Password</h2>
                         <p className="text-center text-slate-500 mb-6">Enter a new password for your account.</p>
                         <form onSubmit={handleResetPassword} className="space-y-6">
                             <div>
@@ -424,7 +440,7 @@ const App = () => {
                                 <input type="password" id="new-password" value={userPassword} onChange={(e) => setUserPassword(e.target.value)} className="mt-1 block w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" placeholder="••••••••" required />
                             </div>
                             <button type="submit" disabled={isLoading} className="w-full flex justify-center bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-indigo-700 transition-colors disabled:bg-indigo-400">
-                                {isLoading ? 'Resetting...' : 'Set New Password'}
+                                {isLoading ? 'Updating...' : 'Set New Password'}
                             </button>
                         </form>
                     </div>
@@ -443,7 +459,7 @@ const App = () => {
                 {currentStep === 'plan' && (
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-fade-in-up">
                         {Object.values(coursePlans).map(plan => (
-                            <div key={plan.id} className="bg-white rounded-2xl shadow-lg p-8 flex flex-col transition-all duration-300 ease-in-out transform hover:-translate-y-2 hover:shadow-2xl relative border-2 border-transparent hover:border-indigo-500/50">
+                            <div key={plan.id} className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-lg p-8 flex flex-col transition-all duration-300 ease-in-out transform hover:-translate-y-2 hover:shadow-2xl relative border-2 border-transparent hover:border-indigo-500/50">
                                 {plan.badge && <div className="absolute top-0 -translate-y-1/2 left-1/2 -translate-x-1/2 bg-indigo-500 text-white text-xs font-bold px-4 py-1 rounded-full uppercase tracking-wider">{plan.badge}</div>}
                                 <h2 className="text-2xl font-bold text-slate-900">{plan.name}</h2>
                                 <p className="text-slate-500 mt-2 flex-grow">{plan.description}</p>
@@ -467,11 +483,29 @@ const App = () => {
                     </div>
                 )}
 
+                {currentStep === 'plan' && (
+                    <section className="mt-24 text-center animate-fade-in-up">
+                        <h2 className="text-3xl font-bold text-slate-800 tracking-tight">What Our Students Say</h2>
+                        <p className="mt-2 text-lg text-slate-600 max-w-2xl mx-auto">Real stories from students who transformed their English with us.</p>
+                        <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8">
+                            {testimonials.map((testimonial, i) => (
+                                <figure key={i} className="bg-white/80 backdrop-blur-xl p-8 rounded-2xl shadow-lg">
+                                    <blockquote className="text-slate-600 italic">“{testimonial.quote}”</blockquote>
+                                    <figcaption className="mt-6">
+                                        <div className="font-semibold text-slate-900">{testimonial.name}</div>
+                                        <div className="text-slate-500 text-sm">{testimonial.title}</div>
+                                    </figcaption>
+                                </figure>
+                            ))}
+                        </div>
+                    </section>
+                )}
+
                 {currentStep === 'schedule' && selectedPlan && (
                     <div className="bg-white/60 backdrop-blur-xl p-6 md:p-8 rounded-3xl shadow-xl border border-gray-100 animate-fade-in-up">
                         <div className="text-center mb-8">
                             <h2 className="text-3xl font-bold text-slate-800 tracking-tight">Step 2: Schedule Your Classes</h2>
-                            <p className="mt-2 text-lg text-slate-600 max-w-2xl mx-auto">Our calendar shows real-time availability. Select your preferred times to create your ideal learning schedule.</p>
+                            <p className="mt-2 text-lg text-slate-600 max-w-2xl mx-auto">Our calendar shows real-time availability. Select your preferred times.</p>
                         </div>
                         <div className="flex flex-col md:flex-row justify-between md:items-center mb-6">
                             <div>
@@ -497,7 +531,7 @@ const App = () => {
                     <div className="bg-white max-w-2xl mx-auto p-8 rounded-3xl shadow-2xl border animate-fade-in-up">
                          <div className="text-center mb-6">
                             <h2 className="text-3xl font-bold text-slate-800 tracking-tight">Step 3: Your Account</h2>
-                            <p className="mt-2 text-lg text-slate-600 max-w-2xl mx-auto">Create a secure account to manage your bookings and track your progress.</p>
+                            <p className="mt-2 text-lg text-slate-600 max-w-2xl mx-auto">Create an account to manage your bookings and track your progress.</p>
                         </div>
                         <div className="mb-8">
                             <div className="flex border-b border-slate-200">
@@ -590,7 +624,7 @@ const App = () => {
                                     <li key={i} className="flex items-center justify-between bg-slate-50 p-3 rounded-lg border border-slate-200">
                                         <div className="flex items-center">
                                             <Icon path="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0h18" className="w-5 h-5 text-indigo-500 mr-3"/>
-                                            <span>{new Date(c.date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'UTC' })}</span>
+                                            <span>{new Date(c.date + 'T00:00:00Z').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'UTC' })}</span>
                                         </div>
                                         <span className="font-semibold text-slate-800">{c.time}</span>
                                     </li>
@@ -619,12 +653,7 @@ const App = () => {
     return (
         <>
             <style>{`
-                @keyframes blob {
-                  0% { transform: translate(0px, 0px) scale(1); }
-                  33% { transform: translate(30px, -50px) scale(1.1); }
-                  66% { transform: translate(-20px, 20px) scale(0.9); }
-                  100% { transform: translate(0px, 0px) scale(1); }
-                }
+                @keyframes blob { 0% { transform: translate(0px, 0px) scale(1); } 33% { transform: translate(30px, -50px) scale(1.1); } 66% { transform: translate(-20px, 20px) scale(0.9); } 100% { transform: translate(0px, 0px) scale(1); } }
                 .animate-blob { animation: blob 7s infinite; }
                 .animation-delay-2000 { animation-delay: 2s; }
                 .animation-delay-4000 { animation-delay: 4s; }
@@ -664,6 +693,11 @@ const App = () => {
                     )}
 
                     {renderContent()}
+
+                    <footer className="text-center mt-24 py-8 border-t border-slate-200 text-slate-500">
+                        <p>&copy; {new Date().getFullYear()} Fluent English. All rights reserved.</p>
+                        <p className="text-sm mt-2">Built with passion for learners worldwide.</p>
+                    </footer>
                 </div>
                 <Notification {...notification} />
             </div>
