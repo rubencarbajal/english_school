@@ -21,13 +21,13 @@ const Header = ({ setPage }) => {
 
     // Navigate to the plan selection step
     const goToHome = () => {
-        setPage('booking');
+        // setPage('booking');
         setCurrentStep('plan');
     };
     
     // Navigate to the login view within the checkout flow
     const goToLogin = () => {
-        setPage('booking');
+        // setPage('booking');
         setCurrentStep('checkout');
     };
 

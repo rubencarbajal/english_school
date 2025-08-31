@@ -55,6 +55,7 @@ export const AuthProvider = ({ children }) => {
     }, [token, fetchUser]);
 
     const handleAuthSuccess = (data, successMessage) => {
+        // console.log("Auth Success Data:", data);
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.data.user));
         setToken(data.token);
@@ -136,6 +137,7 @@ export const AuthProvider = ({ children }) => {
                 body: JSON.stringify({ password: newPassword }),
             });
             const data = await response.json();
+            // console.log(   "Reset Password Response:", data);
             if (!response.ok) throw new Error(data.message);
 
             handleAuthSuccess(data, 'Password reset successfully! You are now logged in.');

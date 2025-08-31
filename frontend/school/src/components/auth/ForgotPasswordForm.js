@@ -6,13 +6,13 @@ import { useUI } from '../../hooks/useUI';
  * Renders a form for users to submit their email to receive a password reset link.
  */
 const ForgotPasswordForm = ({ setPage }) => {
-    const { forgotPassword } = useAuth();
+    const { handleForgotPassword } = useAuth();
     const { isLoading } = useUI();
     const [userEmail, setUserEmail] = useState('');
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const success = await forgotPassword(userEmail);
+        const success = await handleForgotPassword(userEmail);
         if (success) {
             setPage('booking');
             setUserEmail('');

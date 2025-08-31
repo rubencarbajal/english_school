@@ -7,7 +7,7 @@ import { useBooking } from '../../hooks/useBooking';
  * A component that renders a tabbed form for user registration and login.
  * It uses the AuthContext to manage state and actions.
  */
-const AuthForm = () => {
+const AuthForm = ({ setPage }) => {
     // Hooks for state and actions
     const {
         authMode, setAuthMode,
@@ -18,7 +18,7 @@ const AuthForm = () => {
         loginUser
     } = useAuth();
     const { isLoading } = useUI();
-    const { setCurrentStep, setPage, selectedPlan } = useBooking();
+    const { setCurrentStep, selectedPlan } = useBooking();
 
     /**
      * Handles form submission for registration.
@@ -111,7 +111,7 @@ const AuthForm = () => {
                     <div>
                         <div className="flex justify-between items-center">
                             <label htmlFor="login-password" className="block text-sm font-medium text-slate-700">Password</label>
-                            <button type="button" onClick={() => setPage('forgotPassword')} className="text-sm text-indigo-600 hover:text-indigo-500">Forgot password?</button>
+                            <button type="button" onClick={() => setPage && setPage('forgotPassword')} className="text-sm text-indigo-600 hover:text-indigo-500">Forgot password?</button>
                         </div>
                         <input type="password" id="login-password" value={userPassword} onChange={(e) => setUserPassword(e.target.value)} className="mt-1 block w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required />
                     </div>

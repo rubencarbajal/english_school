@@ -7,13 +7,13 @@ import { useUI } from '../../hooks/useUI';
  * It uses the reset token passed in as a prop.
  */
 const ResetPasswordForm = ({ setPage, token }) => {
-    const { resetPassword } = useAuth();
+    const { handleResetPassword } = useAuth();
     const { isLoading } = useUI();
     const [userPassword, setUserPassword] = useState('');
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const success = await resetPassword(userPassword, token);
+        const success = await handleResetPassword(userPassword, token);
         if (success) {
             // After successful password reset, the user is logged in.
             // Navigate them back to the main booking page.

@@ -146,8 +146,10 @@ router.put('/reset-password/:token', async (req, res) => {
     user.resetPasswordExpire = undefined;
     await user.save();
 
+    user.password = undefined;
+
     const token = signToken(user._id);
-    res.status(200).json({ status: 'success', token });
+    res.status(200).json({ status: 'success', token, data: { user }});
   } catch(error) {
     console.error("Password Reset Error:", error);
     res.status(500).json({ message: 'An error occurred while resetting the password.' });

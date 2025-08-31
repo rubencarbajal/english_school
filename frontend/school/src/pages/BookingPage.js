@@ -33,16 +33,34 @@ const BookingPage = ({ setPage }) => {
     const renderContent = () => {
         switch (currentStep) {
             case 'schedule':
-                return <SchedulePicker />;
+                if(selectedPlan){
+                    return <SchedulePicker />;
+                }
+                 return (
+                    <>
+                        <header className="text-center my-12 md:my-20 animate-fade-in-up">
+                            <h1 className="text-5xl md:text-7xl font-extrabold text-slate-900 tracking-tight leading-tight">
+                                Unlock Your <span className="text-indigo-600">English Potential</span>
+                            </h1>
+                            <p className="mt-6 text-lg md:text-xl text-slate-600 max-w-3xl mx-auto">
+                                Join thousands of students achieving fluency with our personalized plans. Choose a package that fits your goals and schedule your first class with an expert tutor in minutes.
+                            </p>
+                        </header>
+                        <main>
+                            <PlanSelector />
+                            <Testimonials />
+                        </main>
+                    </>
+                );
             case 'checkout':
-                return <AuthForm />;
+                return <AuthForm setPage={setPage} />;
             case 'payment':
                 // The payment step requires both a summary and a logged-in user
                 if (paymentSummary && user) {
                     return <CheckoutSummary />;
                 }
                 // If user is not logged in, redirect to the account creation/login step
-                return <AuthForm />;
+                return <AuthForm setPage={setPage} />;
             case 'plan':
             default:
                 return (
