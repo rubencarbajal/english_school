@@ -1,24 +1,26 @@
 import React, { createContext, useState, useEffect, useCallback, useContext } from 'react';
-import { useUI } from './UIContext';
+import { useUI } from '../hooks/useUI';
 
 // --- Configuration ---
 const BACKEND_URL = 'http://localhost:3000';
 
-// Create a context for handling authentication and user data.
+// Create a context for managing authentication state.
 const AuthContext = createContext();
 
-// Export a custom hook for easy consumption.
+// Export a custom hook for easy consumption of this context.
 export const useAuth = () => useContext(AuthContext);
 
-// Define the provider component.
 export const AuthProvider = ({ children }) => {
     const { setIsLoading, showAppNotification } = useUI();
+
+    // Auth & User state
     const [token, setToken] = useState(() => localStorage.getItem('token'));
     const [user, setUser] = useState(null);
+    const [authMode, setAuthMode] = useState('register');
+    const [userName, setUserName] = useState('');
+    const [userEmail, setUserEmail] = useState('');
+    const [userPassword, setUserPassword] = useState('');
 
-    /**
-     * Logs the user out by clearing their token and user data from state and localStorage.
-     */
     const logout = useCallback(() => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
@@ -27,90 +29,81 @@ export const AuthProvider = ({ children }) => {
         showAppNotification('You have been logged out.', 'success');
     }, [showAppNotification]);
 
-    /**
-     * Decodes a JWT and retrieves user data from localStorage to populate the user state.
-     * If the token is invalid or doesn't match the stored user, it logs the user out.
-     * @param {string} currentToken - The JWT to process.
-     */
     const fetchUser = useCallback(async (currentToken) => {
-        if (!currentToken) return;
-        try {
-            // NOTE: A more robust solution would be a '/api/me' endpoint to verify the token
-            // against the backend and get the latest user data. This implementation trusts localStorage.
-            const payload = JSON.parse(atob(currentToken.split('.')[1]));
-            const userObject = JSON.parse(localStorage.getItem('user'));
+        if (currentToken) {
+            try {
+                const payload = JSON.parse(atob(currentToken.split('.')[1]));
+                const userObject = JSON.parse(localStorage.getItem('user'));
 
-            if (userObject && payload.id === userObject._id) {
-                setUser(userObject);
-            } else {
-                console.error("Token-user mismatch or missing user data.");
+                if (userObject && payload.id === userObject._id) {
+                    setUser(userObject);
+                } else {
+                    console.error("User data mismatch, logging out.");
+                    logout();
+                }
+            } catch (error) {
+                console.error("Invalid token or user data:", error);
                 logout();
             }
-        } catch (error) {
-            console.error("Invalid token or user data in localStorage:", error);
-            logout();
         }
     }, [logout]);
-    
-    // On initial app load, check for a stored token and fetch user data if it exists.
+
     useEffect(() => {
         if (token) {
             fetchUser(token);
         }
     }, [token, fetchUser]);
-    
-    /**
-     * Handles successful authentication by storing token and user data.
-     * @param {object} data - The successful response from the login/register API.
-     */
-    const handleAuthSuccess = (data) => {
+
+    const handleAuthSuccess = (data, successMessage) => {
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.data.user));
         setToken(data.token);
         setUser(data.data.user);
-        showAppNotification('Success! You are now logged in.', 'success');
-        return data.data.user; // Return user object for immediate use.
+        setUserName(data.data.user.name);
+        setUserEmail(data.data.user.email);
+        showAppNotification(successMessage, 'success');
+        return data.data.user; // Return user object on success
     };
 
-    const register = async (name, email, password) => {
+    const registerUser = async () => {
         setIsLoading(true);
         try {
             const response = await fetch(`${BACKEND_URL}/api/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, email, password }),
+                body: JSON.stringify({ name: userName, email: userEmail, password: userPassword }),
             });
             const data = await response.json();
             if (!response.ok) throw new Error(data.message);
-            return handleAuthSuccess(data);
+            return handleAuthSuccess(data, 'Success! You are now logged in.');
         } catch (err) {
             showAppNotification(err.message || 'Registration failed.');
-            return null;
+            return null; // Return null on failure
         } finally {
             setIsLoading(false);
         }
     };
 
-    const login = async (email, password) => {
+    const loginUser = async () => {
         setIsLoading(true);
         try {
             const response = await fetch(`${BACKEND_URL}/api/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password }),
+                body: JSON.stringify({ email: userEmail, password: userPassword }),
             });
             const data = await response.json();
             if (!response.ok) throw new Error(data.message);
-            return handleAuthSuccess(data);
+            return handleAuthSuccess(data, 'Welcome back!');
         } catch (err) {
             showAppNotification(err.message || 'Login failed.');
-            return null;
+            return null; // Return null on failure
         } finally {
             setIsLoading(false);
         }
     };
 
-    const forgotPassword = async (email) => {
+    const handleForgotPassword = async (email) => {
         setIsLoading(true);
         try {
             const response = await fetch(`${BACKEND_URL}/api/forgot-password`, {
@@ -122,15 +115,15 @@ export const AuthProvider = ({ children }) => {
             if (!response.ok) throw new Error(data.message);
             showAppNotification(data.message, 'success');
             return true;
-        } catch(err) {
+        } catch (err) {
             showAppNotification(err.message || 'Failed to send reset link.');
             return false;
         } finally {
             setIsLoading(false);
         }
     };
-    
-    const resetPassword = async (newPassword, resetToken) => {
+
+    const handleResetPassword = async (newPassword, resetToken) => {
         if (newPassword.length < 8) {
             showAppNotification('Password must be at least 8 characters long.');
             return false;
@@ -144,13 +137,11 @@ export const AuthProvider = ({ children }) => {
             });
             const data = await response.json();
             if (!response.ok) throw new Error(data.message);
-            
-            // Assuming the reset endpoint response includes the user object and a new token
-            handleAuthSuccess(data);
+
+            handleAuthSuccess(data, 'Password reset successfully! You are now logged in.');
             window.history.pushState({}, '', '/');
             return true;
-
-        } catch(err) {
+        } catch (err) {
             showAppNotification(err.message || 'Failed to reset password.');
             return false;
         } finally {
@@ -158,7 +149,24 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    const value = { token, user, login, register, logout, forgotPassword, resetPassword };
+    const value = {
+        token,
+        user,
+        authMode,
+        setAuthMode,
+        userName,
+        setUserName,
+        userEmail,
+        setUserEmail,
+        userPassword,
+        setUserPassword,
+        registerUser,
+        loginUser,
+        logout,
+        handleForgotPassword,
+        handleResetPassword,
+    };
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
+

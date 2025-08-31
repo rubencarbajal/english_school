@@ -12,8 +12,16 @@ const BookingContext = createContext();
 export const useBooking = () => useContext(BookingContext);
 
 export const BookingProvider = ({ children }) => {
+    // Destructure what's needed from other contexts
     const { setIsLoading, showAppNotification } = useUI();
-    const { token } = useAuth();
+    const {
+        token,
+        user,
+        setUserName,
+        setUserEmail,
+        setUserPassword,
+        setAuthMode
+    } = useAuth();
 
     // State for the multi-step booking process
     const [currentStep, setCurrentStep] = useState('plan'); // 'plan', 'schedule', 'checkout', 'payment'
@@ -53,6 +61,7 @@ export const BookingProvider = ({ children }) => {
         }
     }, [currentStep, fetchAvailability]);
 
+
     const handleSelectPlan = (plan) => {
         setSelectedPlan(plan);
         setSelectedDates([]);
@@ -77,28 +86,28 @@ export const BookingProvider = ({ children }) => {
         }
     };
 
-    /**
-     * Validates selections and creates a payment summary object.
-     */
-    const generatePaymentSummary = () => {
-        if (!selectedPlan || selectedDates.length !== selectedPlan.totalClasses) {
+    const handleProceedToCheckout = useCallback(() => {
+        if (!selectedPlan) return;
+        if (selectedDates.length !== selectedPlan.totalClasses) {
             showAppNotification(`Please select exactly ${selectedPlan.totalClasses} class(es).`);
-            return null;
-        }
-        const totalCost = selectedDates.length * selectedPlan.pricePerClass;
-        const summary = { plan: selectedPlan, classes: selectedDates, totalCost };
-        setPaymentSummary(summary);
-        return summary;
-    };
-
-    /**
-     * Submits the final booking to the backend.
-     */
-    const confirmBooking = async () => {
-        if (!paymentSummary) {
-            showAppNotification('No payment summary available to confirm.');
             return;
         }
+        const totalCost = selectedDates.length * selectedPlan.pricePerClass;
+        setPaymentSummary({ plan: selectedPlan, classes: selectedDates, totalCost });
+
+        if (token && user) {
+            setCurrentStep('payment');
+        } else {
+            setAuthMode('register');
+            setUserEmail('');
+            setUserName('');
+            setUserPassword('');
+            setCurrentStep('checkout');
+        }
+    }, [selectedDates.length, selectedPlan, showAppNotification, token, user, setAuthMode, setCurrentStep, setUserEmail, setUserName, setUserPassword]);
+
+    const handleConfirmBooking = async () => {
+        if (!paymentSummary) return;
         setIsLoading(true);
         try {
             const response = await fetch(`${BACKEND_URL}/api/bookings`, {
@@ -128,7 +137,7 @@ export const BookingProvider = ({ children }) => {
             setIsLoading(false);
         }
     };
-    
+
     const value = {
         currentStep,
         setCurrentStep,
@@ -137,11 +146,12 @@ export const BookingProvider = ({ children }) => {
         selectedDates,
         handleClassSelection,
         paymentSummary,
-        generatePaymentSummary,
+        handleProceedToCheckout,
         classAvailability,
-        confirmBooking,
+        handleConfirmBooking,
         resetBooking,
     };
 
     return <BookingContext.Provider value={value}>{children}</BookingContext.Provider>;
 };
+
