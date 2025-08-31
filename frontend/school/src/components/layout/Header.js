@@ -11,7 +11,7 @@ const Header = ({ setPage }) => {
     const { user, logout } = useAuth();
     // Get booking state management from BookingContext
     const { setCurrentStep } = useBooking();
-
+    const { simonalapelona } = useAuth();
     // Handle user logout
     const handleLogout = () => {
         logout();
@@ -24,7 +24,7 @@ const Header = ({ setPage }) => {
         // setPage('booking');
         setCurrentStep('plan');
     };
-    
+
     // Navigate to the login view within the checkout flow
     const goToLogin = () => {
         // setPage('booking');
@@ -33,27 +33,32 @@ const Header = ({ setPage }) => {
 
     return (
         <header className="flex justify-between items-center my-8 md:my-12 animate-fade-in-up">
-            <div 
-                className="text-2xl font-bold text-slate-900 cursor-pointer" 
+            <div
+                className="text-2xl font-bold text-slate-900 cursor-pointer"
                 onClick={goToHome}
             >
                 Fluent English
             </div>
+            {true && (
+                <button className="text-sm hover:underline" onClick={() => setPage('studentDashboard')}>
+                    Dashboard
+                </button>
+            )}
             {user ? (
                 <div className="flex items-center gap-4">
                     <span className="text-slate-600 hidden sm:inline">
                         Welcome, <span className="font-semibold">{user.name.split(' ')[0]}</span>!
                     </span>
-                    <button 
-                        onClick={handleLogout} 
+                    <button
+                        onClick={handleLogout}
                         className="bg-indigo-100 text-indigo-700 font-semibold py-2 px-4 rounded-lg hover:bg-indigo-200 transition-colors"
                     >
                         Logout
                     </button>
                 </div>
             ) : (
-               <button 
-                    onClick={goToLogin} 
+                <button
+                    onClick={goToLogin}
                     className="bg-indigo-100 text-indigo-700 font-semibold py-2 px-4 rounded-lg hover:bg-indigo-200 transition-colors"
                 >
                     Student Login

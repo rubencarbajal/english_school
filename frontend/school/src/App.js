@@ -9,6 +9,7 @@ import { AppProviders } from './context/AppProviders';
 import BookingPage from './pages/BookingPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
+import StudentDashboardPage from './pages/StudentDashboardPage';
 
 // The main App component is now much simpler
 const App = () => {
@@ -36,6 +37,8 @@ const App = () => {
                 return <ForgotPasswordPage setPage={setPage} />;
             case 'resetPassword':
                 return <ResetPasswordPage setPage={setPage} token={resetToken} />;
+            case 'studentDashboard':
+               return <StudentDashboardPage setPage={setPage} />;
             case 'booking':
             default:
                 return <BookingPage setPage={setPage} />;

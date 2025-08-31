@@ -1,0 +1,40 @@
+/src
+├── components
+│   ├── auth
+│   │   ├── AuthForm.js
+│   │   └── ForgotPasswordForm.js
+│   │   └── ResetPasswordForm.js
+│   ├── booking
+│   │   ├── PlanSelector.js
+│   │   ├── SchedulePicker.js
+│   │   └── CheckoutSummary.js
+│   ├── layout
+│   │   ├── Header.js
+│   │   └── Footer.js
+│   └── shared
+│       ├── Icon.js
+│       ├── LoadingSpinner.js
+│       ├── Notification.js
+│       └── Testimonials.js
+│
+├── constants
+│   ├── coursePlans.js
+│   └── testimonials.js
+│
+├── context
+│   ├── AppProviders.js
+│   ├── AuthContext.js  
+│   ├── BookingContext.js
+│   └── UIContext.js
+│
+├── hooksuseAuth.js
+│   ├── useAuth.js
+│   ├── useBooking.js
+│   └── useUI.js
+│
+├── pages
+│   ├── BookingPage.js
+│   ├── ForgotPasswordPage.js
+│   └── ResetPasswordPage.js
+│
+└── App.js
