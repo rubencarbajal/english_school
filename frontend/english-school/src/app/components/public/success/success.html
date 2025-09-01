@@ -1,0 +1,84 @@
+<div class="min-h-screen bg-slate-900 pt-28 pb-16 px-4">
+  <div class="max-w-4xl mx-auto space-y-8">
+
+    <!-- Header / Success -->
+    <section class="bg-slate-800/50 border border-slate-700 rounded-xl p-6 md:p-8 text-center">
+      <div class="mx-auto h-16 w-16 rounded-full bg-emerald-500/15 border border-emerald-600 flex items-center justify-center">
+        <!-- check icon -->
+        <svg class="h-8 w-8 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M20 6L9 17l-5-5" />
+        </svg>
+      </div>
+      <h1 class="mt-4 text-4xl md:text-5xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-sky-400 to-blue-500">
+        Payment Successful
+      </h1>
+      <p class="mt-2 text-slate-400">Your classes are booked. A confirmation has been recorded.</p>
+
+      <div class="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
+        <button (click)="goToDashboard()"
+          class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-2.5 px-6 rounded-lg transition-colors">
+          Go to Dashboard
+        </button>
+        <button (click)="goToBookings()"
+          class="bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold py-2.5 px-6 rounded-lg transition-colors">
+          View My Bookings
+        </button>
+        <button (click)="printReceipt()"
+          class="bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold py-2.5 px-6 rounded-lg transition-colors">
+          Print Receipt
+        </button>
+      </div>
+    </section>
+
+    <!-- Summary -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- Order card -->
+      <div class="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
+        <h2 class="text-xl font-bold text-white">Order</h2>
+        <div class="mt-4 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-slate-400">Order ID</span>
+            <span class="text-white font-semibold">{{ orderId() }}</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-slate-400">Paid at</span>
+            <span class="text-white font-semibold">{{ paidAt() | date:'MMM d, y, h:mm a' }}</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-slate-400">Plan</span>
+            <span class="text-white font-semibold">{{ plan()?.title }}</span>
+          </div>
+          <div class="h-px bg-slate-700 my-2"></div>
+          <div class="flex items-center justify-between">
+            <span class="text-slate-300">Price / class</span>
+            <span class="text-white">{{ plan()?.cost | currency:'USD':'symbol':'1.0-2' }}</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-slate-300">Classes</span>
+            <span class="text-white">{{ totalClasses() }}</span>
+          </div>
+          <div class="h-px bg-slate-700 my-2"></div>
+          <div class="flex items-center justify-between">
+            <span class="text-slate-300">Total</span>
+            <span class="text-white text-xl font-extrabold">{{ totalCost() | currency:'USD':'symbol':'1.0-2' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sessions list -->
+      <div class="md:col-span-2 bg-slate-800/50 border border-slate-700 rounded-xl p-6">
+        <h2 class="text-xl font-bold text-white">Booked Sessions</h2>
+        <p class="text-slate-400 mt-1">These are the dates and times reserved for your classes.</p>
+
+        <ul class="mt-4 space-y-2 max-h-80 overflow-auto pr-1">
+          @for (s of slots(); track s) {
+            <li class="flex items-center justify-between bg-slate-900/50 border border-slate-700 rounded-lg px-3 py-2">
+              <span class="text-slate-300">{{ s.date | date:'EEE, MMM d, y' }}</span>
+              <span class="text-sky-400 font-semibold">{{ s.time }}</span>
+            </li>
+          }
+        </ul>
+      </div>
+    </section>
+  </div>
+</div>

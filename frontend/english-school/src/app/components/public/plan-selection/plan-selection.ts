@@ -1,5 +1,5 @@
-import { NgClass } from '@angular/common';
-import { Component } from '@angular/core';
+import { isPlatformBrowser, NgClass } from '@angular/common';
+import { Component, inject, PLATFORM_ID } from '@angular/core';
 import { Router } from '@angular/router';
 import { Plan } from '../schedule-classes/schedule-classes';
 
@@ -44,8 +44,8 @@ export class PlanSelection {
       '10 live sessions',
       'Dedicated support',
       'Priority scheduling',
-      'Priority scheduling',
-      'Priority scheduling',
+      'Changes to scheduling',
+      'Class re schedule',
       'All practice materials'
     ],
     tag: 'Best Value',
@@ -54,10 +54,16 @@ export class PlanSelection {
 
 constructor(private router: Router) {}
 
+ private platformId = inject(PLATFORM_ID);
   choose(plan: Plan) {
-    // Optional: persist in sessionStorage to survive refreshes
+    const isBrowser = isPlatformBrowser(this.platformId);
+
+    if(isBrowser){
+  // Optional: persist in sessionStorage to survive refreshes
     sessionStorage.setItem('selectedPlan', JSON.stringify(plan));
 
+    }
+  
     // Navigate passing router state
     this.router.navigate(['public/schedule'], { state: { plan } });
   }

@@ -1,0 +1,134 @@
+<div class="min-h-screen bg-slate-900 pt-28 pb-12 px-4">
+  <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+    <!-- Order Summary -->
+    <section class="lg:col-span-1 bg-slate-800/50 border border-slate-700 rounded-xl p-6">
+      <h2 class="text-2xl font-bold text-white">Order Summary</h2>
+      <p class="mt-1 text-slate-400">Review your selected sessions and total.</p>
+
+      <div class="mt-6 space-y-4">
+        <div class="flex items-center justify-between">
+          <span class="text-slate-300">Plan</span>
+          <span class="text-white font-semibold">{{ plan()?.title }}</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-slate-300">Price / class</span>
+          <span class="text-white font-semibold">{{ pricePerClass() | currency:'USD':'symbol':'1.0-2' }}</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-slate-300">Classes</span>
+          <span class="text-white font-semibold">{{ totalClasses() }}</span>
+        </div>
+
+        <div class="h-px bg-slate-700 my-2"></div>
+
+        <div class="flex items-center justify-between">
+          <span class="text-slate-300">Total</span>
+          <span class="text-white text-xl font-extrabold">{{ totalCost() | currency:'USD':'symbol':'1.0-2' }}</span>
+        </div>
+      </div>
+
+      <div class="mt-8">
+        <h3 class="text-lg font-bold text-white">Selected Sessions</h3>
+        <ul class="mt-3 space-y-2 max-h-64 overflow-auto pr-1">
+          @for (s of slots(); track s) {
+            <li class="flex items-center justify-between bg-slate-900/50 border border-slate-700 rounded-lg px-3 py-2">
+              <span class="text-slate-300">
+                {{ s.date | date:'EEE, MMM d' }}
+              </span>
+              <span class="text-sky-400 font-semibold">{{ s.time }}</span>
+            </li>
+          }
+        </ul>
+        <button (click)="backToSchedule()"
+          class="mt-4 w-full bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold py-2.5 rounded-lg transition-colors">
+          Edit schedule
+        </button>
+      </div>
+    </section>
+
+    <!-- Payment -->
+    <section class="lg:col-span-2 bg-slate-800/50 border border-slate-700 rounded-xl p-6">
+      <h2 class="text-2xl font-bold text-white">Payment</h2>
+      <p class="mt-1 text-slate-400">Enter your card details to complete the purchase.</p>
+
+      @if (payError()) {
+        <div class="mt-4 rounded-lg border border-slate-700 bg-slate-800/50 p-3 text-amber-400">
+          {{ payError() }}
+        </div>
+      }
+
+      @if (paySuccess()) {
+        <div class="mt-4 rounded-lg border border-emerald-600 bg-emerald-500/10 p-3 text-emerald-400">
+          Payment successful! Redirecting…
+        </div>
+      }
+
+      <form class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4" [formGroup]="paymentForm" (ngSubmit)="pay()" novalidate>
+        <div class="md:col-span-2">
+          <label class="block text-sm text-slate-400 mb-1">Name on Card</label>
+          <input
+            formControlName="name"
+            name="cc-name"
+            autocomplete="cc-name"
+            class="w-full rounded-lg bg-slate-900 border border-slate-700 px-4 py-3 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
+            placeholder="Full name"
+          />
+        </div>
+
+        <div class="md:col-span-2">
+          <label class="block text-sm text-slate-400 mb-1">Card Number</label>
+          <input
+            formControlName="cardNumber"
+            inputmode="numeric"
+            name="cc-number"
+            autocomplete="cc-number"
+            class="w-full rounded-lg bg-slate-900 border border-slate-700 px-4 py-3 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
+            placeholder="1234 5678 9012 3456"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm text-slate-400 mb-1">Expiry (MM/YY)</label>
+          <input
+            formControlName="expiry"
+            name="cc-exp"
+            autocomplete="cc-exp"
+            class="w-full rounded-lg bg-slate-900 border border-slate-700 px-4 py-3 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
+            placeholder="MM/YY"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm text-slate-400 mb-1">CVV</label>
+          <input
+            formControlName="cvv"
+            inputmode="numeric"
+            name="cc-csc"
+            autocomplete="cc-csc"
+            class="w-full rounded-lg bg-slate-900 border border-slate-700 px-4 py-3 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
+            placeholder="123"
+          />
+        </div>
+
+        <label class="md:col-span-2 inline-flex items-center gap-3 select-none">
+          <input type="checkbox" formControlName="saveCard"
+            class="rounded bg-slate-900 border-slate-700 text-sky-500 focus:ring-sky-500" />
+          <span class="text-sm text-slate-400">Save this card for faster checkout next time</span>
+        </label>
+
+        <div class="md:col-span-2">
+          <button type="submit"
+            [disabled]="paying() || paymentForm.invalid || totalClasses() === 0"
+            class="w-full font-semibold py-3 rounded-lg transition-colors duration-300 bg-emerald-500 hover:bg-emerald-600 text-white disabled:opacity-60 disabled:cursor-not-allowed">
+            @if (!paying()) {
+              Pay {{ totalCost() | currency:'USD':'symbol':'1.0-2' }}
+            } @else {
+              Processing…
+            }
+          </button>
+        </div>
+      </form>
+    </section>
+  </div>
+</div>

@@ -1,0 +1,155 @@
+<div class="min-h-screen bg-slate-900 pt-28 pb-12 px-4">
+  <div class="max-w-7xl mx-auto space-y-8">
+
+    <!-- Top Summary -->
+    <section class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div class="bg-slate-800/50 border border-slate-700 rounded-xl p-4">
+        <div class="text-slate-400 text-sm">Purchased</div>
+        <div class="text-white text-3xl font-extrabold">{{ totalPurchased() }}</div>
+        <div class="text-slate-400 text-sm">classes, total cost
+          <span class="text-white font-semibold">{{ totalCost() | currency:'USD':'symbol':'1.0-2' }}</span>
+        </div>
+      </div>
+
+      <div class="bg-slate-800/50 border border-slate-700 rounded-xl p-4">
+        <div class="text-slate-400 text-sm">Completed</div>
+        <div class="text-emerald-400 text-3xl font-extrabold">{{ totalCompleted() }}</div>
+        <div class="text-slate-400 text-sm">classes taken</div>
+      </div>
+
+      <div class="bg-slate-800/50 border border-slate-700 rounded-xl p-4">
+        <div class="text-slate-400 text-sm">Scheduled</div>
+        <div class="text-sky-400 text-3xl font-extrabold">{{ totalScheduled() }}</div>
+        <div class="text-slate-400 text-sm">upcoming</div>
+      </div>
+
+      <div class="bg-slate-800/50 border border-slate-700 rounded-xl p-4">
+        <div class="text-slate-400 text-sm">Remaining</div>
+        <div class="text-white text-3xl font-extrabold">{{ totalRemainingToSchedule() }}</div>
+        <div class="text-slate-400 text-sm">to schedule</div>
+      </div>
+    </section>
+
+    <!-- Purchases list -->
+    <section class="space-y-6">
+      <div class="flex items-center justify-between">
+        <h2 class="text-2xl font-bold text-white">My Plans</h2>
+        <div class="flex gap-3">
+          <button (click)="viewAllBookings()" class="bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold py-2 px-4 rounded-lg transition-colors">
+            View all bookings
+          </button>
+          <button (click)="buyMore()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors">
+            Book more classes
+          </button>
+        </div>
+      </div>
+
+      @for (p of purchases(); track p.purchaseId) {
+        <div class="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
+          <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            <!-- Left info -->
+            <div class="flex-1">
+              <div class="flex items-center gap-3">
+                <span class="text-white text-xl font-bold">{{ p.plan.title }}</span>
+                <span class="text-slate-400 text-sm">Purchased {{ p.purchasedSessions }} × {{ p.pricePerClass | currency:'USD':'symbol':'1.0-2' }}</span>
+              </div>
+              <div class="text-slate-400 text-sm">
+                Order: <span class="text-white font-semibold">{{ p.purchaseId }}</span>
+                · Date: <span class="text-white font-semibold">{{ p.purchasedAt | date:'MMM d, y' }}</span>
+              </div>
+
+              <!-- Progress -->
+              <div class="mt-4">
+                <div class="flex items-center justify-between text-sm">
+                  <span class="text-slate-400">Progress</span>
+                  <span class="text-slate-300">{{ completedCount(p) }}/{{ p.purchasedSessions }} completed ({{ progressPct(p) }}%)</span>
+                </div>
+                <div class="mt-2 h-3 bg-slate-900/60 rounded-full border border-slate-700 overflow-hidden">
+                  <div class="h-full bg-emerald-500" [style.width.%]="progressPct(p)"></div>
+                </div>
+              </div>
+
+              <!-- Counters -->
+              <div class="mt-4 grid grid-cols-3 gap-3">
+                <div class="bg-slate-900/50 border border-slate-700 rounded-lg p-3 text-center">
+                  <div class="text-slate-400 text-xs">Completed</div>
+                  <div class="text-emerald-400 text-xl font-bold">{{ completedCount(p) }}</div>
+                </div>
+                <div class="bg-slate-900/50 border border-slate-700 rounded-lg p-3 text-center">
+                  <div class="text-slate-400 text-xs">Scheduled</div>
+                  <div class="text-sky-400 text-xl font-bold">{{ scheduledCount(p) }}</div>
+                </div>
+                <div class="bg-slate-900/50 border border-slate-700 rounded-lg p-3 text-center">
+                  <div class="text-slate-400 text-xs">Remaining</div>
+                  <div class="text-white text-xl font-bold">{{ remainingToSchedule(p) }}</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right actions -->
+            <div class="w-full lg:w-64">
+              <div class="bg-slate-900/50 border border-slate-700 rounded-lg p-4">
+                <div class="text-slate-400 text-sm">Total</div>
+                <div class="text-white text-2xl font-extrabold">{{ planTotalCost(p) | currency:'USD':'symbol':'1.0-2' }}</div>
+                <button
+                  (click)="scheduleFor(p)"
+                  [disabled]="remainingToSchedule(p) === 0"
+                  class="mt-4 w-full bg-sky-500 hover:bg-sky-600 text-white font-semibold py-2.5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                  Schedule remaining
+                </button>
+                <a
+                  [routerLink]="['/private/checkout']"
+                  class="mt-2 block w-full text-center bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold py-2.5 rounded-lg transition-colors">
+                  Buy more in this plan
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sessions -->
+          <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <!-- Upcoming -->
+            <div class="bg-slate-900/50 border border-slate-700 rounded-lg p-4">
+              <div class="flex items-center justify-between">
+                <h3 class="text-white font-semibold">Upcoming sessions</h3>
+                <span class="text-sky-400 text-sm font-semibold">{{ scheduledCount(p) }}</span>
+              </div>
+              <ul class="mt-3 space-y-2 max-h-56 overflow-auto pr-1">
+                @if (p.upcomingSessions.length === 0) {
+                  <li class="text-slate-400 text-sm">No upcoming sessions.</li>
+                } @else {
+                  @for (s of p.upcomingSessions; track s) {
+                    <li class="flex items-center justify-between bg-slate-800/60 border border-slate-700 rounded-md px-3 py-2">
+                      <span class="text-slate-300">{{ s.date | date:'EEE, MMM d, y' }}</span>
+                      <span class="text-sky-400 font-semibold">{{ s.time }}</span>
+                    </li>
+                  }
+                }
+              </ul>
+            </div>
+
+            <!-- Completed -->
+            <div class="bg-slate-900/50 border border-slate-700 rounded-lg p-4">
+              <div class="flex items-center justify-between">
+                <h3 class="text-white font-semibold">Completed sessions</h3>
+                <span class="text-emerald-400 text-sm font-semibold">{{ completedCount(p) }}</span>
+              </div>
+              <ul class="mt-3 space-y-2 max-h-56 overflow-auto pr-1">
+                @if (p.completedSessions.length === 0) {
+                  <li class="text-slate-400 text-sm">No completed sessions yet.</li>
+                } @else {
+                  @for (s of p.completedSessions; track s) {
+                    <li class="flex items-center justify-between bg-slate-800/60 border border-slate-700 rounded-md px-3 py-2">
+                      <span class="text-slate-300">{{ s.date | date:'EEE, MMM d, y' }}</span>
+                      <span class="text-slate-400">{{ s.time }}</span>
+                    </li>
+                  }
+                }
+              </ul>
+            </div>
+          </div>
+        </div>
+      }
+    </section>
+  </div>
+</div>

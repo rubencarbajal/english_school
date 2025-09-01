@@ -1,0 +1,222 @@
+<!-- Background -->
+<div class="min-h-screen bg-slate-900 flex items-center justify-center px-4 py-12">
+  <!-- Card -->
+  <div class="w-full max-w-xl bg-slate-800/50 border border-slate-700 rounded-xl p-6 md:p-8 shadow-2xl animate-fade-in">
+
+    <!-- Header -->
+    <div class="text-center">
+      <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-sky-400 to-blue-500">
+        Welcome
+      </h1>
+      <p class="mt-2 text-slate-400">Sign in or create your account</p>
+    </div>
+
+    <!-- Mode Tabs -->
+    <div class="mt-6 grid grid-cols-2 gap-2">
+      <button
+        (click)="switchTo('login')"
+        class="font-semibold py-3 rounded-lg transition-all duration-300 border"
+        [ngClass]="isLogin() ? 'bg-sky-500 text-white border-sky-400' : 'bg-slate-900 text-slate-300 border-slate-700 hover:bg-slate-800'"
+      >
+        Login
+      </button>
+      <button
+        (click)="switchTo('register')"
+        class="font-semibold py-3 rounded-lg transition-all duration-300 border"
+        [ngClass]="!isLogin() ? 'bg-sky-500 text-white border-sky-400' : 'bg-slate-900 text-slate-300 border-slate-700 hover:bg-slate-800'"
+      >
+        Register
+      </button>
+    </div>
+
+    <!-- Error Alert -->
+    @if (authError()) {
+      <div class="mt-6 rounded-lg border border-slate-700 bg-slate-800/50 p-3 text-amber-400">
+        {{ authError() }}
+      </div>
+    }
+
+    <!-- LOGIN FORM -->
+    @if (isLogin()) {
+      <form class="mt-6 space-y-5" [formGroup]="loginForm" (ngSubmit)="submitLogin()" novalidate>
+        <!-- Email -->
+        <div>
+          <label for="login-email" class="block text-sm text-slate-400 mb-1">Email</label>
+          <input
+            id="login-email"
+            name="email"
+            type="email"
+            formControlName="email"
+            autocomplete="email"
+            class="w-full rounded-lg bg-slate-900 border border-slate-700 px-4 py-3 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
+            placeholder="you@example.com"
+          />
+          @if (lf.email.touched && lf.email.invalid) {
+            <p class="mt-2 text-sm text-amber-400">
+              @if (lf.email.errors?.['required']) { Email is required. }
+              @if (lf.email.errors?.['email']) { Enter a valid email. }
+            </p>
+          }
+        </div>
+
+        <!-- Password -->
+        <div>
+          <div class="flex items-center justify-between">
+            <label for="login-password" class="block text-sm text-slate-400 mb-1">Password</label>
+            <a routerLink="/forgot-password" class="text-sm text-sky-400 hover:underline">Forgot password?</a>
+          </div>
+
+          <div class="relative">
+            <input
+              id="login-password"
+              name="current-password"
+              [type]="showLoginPassword() ? 'text' : 'password'"
+              formControlName="password"
+              autocomplete="current-password"
+              class="w-full rounded-lg bg-slate-900 border border-slate-700 px-4 py-3 pr-12 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
+              placeholder="••••••••"
+            />
+            <button type="button"
+              (click)="showLoginPassword.set(!showLoginPassword())"
+              class="absolute inset-y-0 right-0 px-3 text-slate-300 hover:text-white transition-colors"
+              aria-label="Toggle password visibility">
+              @if (showLoginPassword()) { 👁️ } @else { 👁️‍🗨️ }
+            </button>
+          </div>
+
+          @if (lf.password.touched && lf.password.invalid) {
+            <p class="mt-2 text-sm text-amber-400">
+              @if (lf.password.errors?.['required']) { Password is required. }
+              @if (lf.password.errors?.['minlength']) { Minimum 6 characters. }
+            </p>
+          }
+        </div>
+
+        <!-- Remember me -->
+        <div class="flex items-center justify-between">
+          <label class="inline-flex items-center gap-3 select-none">
+            <input type="checkbox" formControlName="remember"
+              class="rounded bg-slate-900 border-slate-700 text-sky-500 focus:ring-sky-500" />
+            <span class="text-sm text-slate-400">Remember me</span>
+          </label>
+
+          <a routerLink="/register" class="text-sm text-slate-300 hover:text-sky-400 transition-colors">Create account</a>
+        </div>
+
+        <!-- Submit -->
+        <button
+          type="submit"
+          [disabled]="loading()"
+          class="w-full font-semibold py-3 px-8 rounded-lg transition-colors duration-300 bg-emerald-500 hover:bg-emerald-600 text-white disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          @if (!loading()) { Sign In } @else { Signing in… }
+        </button>
+      </form>
+    }
+
+    <!-- REGISTER FORM -->
+    @if (!isLogin()) {
+      <form class="mt-6 space-y-5" [formGroup]="registerForm" (ngSubmit)="submitRegister()" novalidate>
+        <!-- Email -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label for="reg-email" class="block text-sm text-slate-400 mb-1">Email</label>
+            <input
+              id="reg-email"
+              name="email"
+              type="email"
+              formControlName="email"
+              autocomplete="email"
+              class="w-full rounded-lg bg-slate-900 border border-slate-700 px-4 py-3 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
+              placeholder="you@example.com"
+            />
+          </div>
+          <div>
+            <label for="reg-email2" class="block text-sm text-slate-400 mb-1">Confirm Email</label>
+            <input
+              id="reg-email2"
+              name="email"
+              type="email"
+              formControlName="confirmEmail"
+              autocomplete="email"
+              class="w-full rounded-lg bg-slate-900 border border-slate-700 px-4 py-3 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
+              placeholder="you@example.com"
+            />
+          </div>
+        </div>
+        @if (registerForm.hasError('emailsMismatch') && (rf.confirmEmail.touched || rf.email.touched)) {
+          <p class="text-sm text-amber-400">Emails do not match.</p>
+        }
+
+        <!-- Passwords -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label for="reg-pass" class="block text-sm text-slate-400 mb-1">Password</label>
+            <div class="relative">
+              <input
+                id="reg-pass"
+                name="new-password"
+                [type]="showRegPassword() ? 'text' : 'password'"
+                formControlName="password"
+                autocomplete="new-password"
+                class="w-full rounded-lg bg-slate-900 border border-slate-700 px-4 py-3 pr-12 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
+                placeholder="Create a password"
+              />
+              <button type="button"
+                (click)="showRegPassword.set(!showRegPassword())"
+                class="absolute inset-y-0 right-0 px-3 text-slate-300 hover:text-white transition-colors"
+                aria-label="Toggle password visibility">
+                @if (showRegPassword()) { 👁️ } @else { 👁️‍🗨️ }
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label for="reg-pass2" class="block text-sm text-slate-400 mb-1">Confirm Password</label>
+            <div class="relative">
+              <input
+                id="reg-pass2"
+                name="new-password"
+                [type]="showRegPassword2() ? 'text' : 'password'"
+                formControlName="confirmPassword"
+                autocomplete="new-password"
+                class="w-full rounded-lg bg-slate-900 border border-slate-700 px-4 py-3 pr-12 text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
+                placeholder="Repeat your password"
+              />
+              <button type="button"
+                (click)="showRegPassword2.set(!showRegPassword2())"
+                class="absolute inset-y-0 right-0 px-3 text-slate-300 hover:text-white transition-colors"
+                aria-label="Toggle password visibility">
+                @if (showRegPassword2()) { 👁️ } @else { 👁️‍🗨️ }
+              </button>
+            </div>
+          </div>
+        </div>
+        @if (registerForm.hasError('passwordsMismatch') && (rf.confirmPassword.touched || rf.password.touched)) {
+          <p class="text-sm text-amber-400">Passwords do not match.</p>
+        }
+
+        <!-- Terms -->
+        <label class="inline-flex items-center gap-3 select-none mt-1">
+          <input type="checkbox" formControlName="acceptTerms"
+            class="rounded bg-slate-900 border-slate-700 text-sky-500 focus:ring-sky-500" />
+          <span class="text-sm text-slate-400">
+            I agree to the <a href="#" class="text-sky-400 hover:underline">Terms & Privacy</a>.
+          </span>
+        </label>
+        @if (rf.acceptTerms.touched && rf.acceptTerms.invalid) {
+          <p class="text-sm text-amber-400">You must accept the terms.</p>
+        }
+
+        <!-- Submit -->
+        <button
+          type="submit"
+          [disabled]="loading()"
+          class="w-full font-semibold py-3 px-8 rounded-lg transition-colors duration-300 bg-emerald-500 hover:bg-emerald-600 text-white disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          @if (!loading()) { Create Account } @else { Creating account… }
+        </button>
+      </form>
+    }
+  </div>
+</div>
