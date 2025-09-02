@@ -9,10 +9,10 @@ import { UpperNav } from '../upper-nav/upper-nav';
   styleUrl: './layout.scss'
 })
 export class Layout { 
-  home: boolean;
+  // home: boolean;
 
-  constructor(private router: ActivatedRoute) {
-    this.home = this.router.snapshot.routeConfig?.path === 'home';
-  }
+  // constructor(private router: ActivatedRoute) {
+  //   this.home = this.router.snapshot.routeConfig?.path === 'home';
+  // }
   
 }

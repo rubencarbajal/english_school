@@ -13,7 +13,7 @@ export class Auth {
     if (token && email) this.user.set({ email });
   }
 
-  isLoggedIn(): boolean { return !!this.user(); }
+  isLoggedIn(): boolean { console.log('is logged in here' ,!!this.user()); return !!this.user(); }
 
   // Call this after a successful login (even if simulated)
   login(email: string, token = 'demo-token') {
@@ -26,5 +26,6 @@ export class Auth {
     this.storage.removeItem('authToken');
     this.storage.removeItem('authEmail');
     this.user.set(null);
+    sessionStorage.clear(); // Clear session storage on logout
   }
 }

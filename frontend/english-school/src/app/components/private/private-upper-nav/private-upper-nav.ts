@@ -1,6 +1,8 @@
 import { NgClass } from '@angular/common';
 import { Component, HostListener, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
+import { Storage } from '../../../services/storage'; // SSR-safe wrapper
+import { Auth } from '../../../services/auth';
 
 @Component({
   selector: 'app-private-upper-nav',
@@ -22,17 +24,22 @@ export class PrivateUpperNav {
 
 
      private router = inject(Router);
+     private storage = inject(Storage);
+     private auth = inject(Auth);
 
   logout() {
-    // 1. Clear stored auth state
-    localStorage.removeItem('authToken');   // if you’re using a token
-    sessionStorage.removeItem('selectedPlan'); // if you stored plan/session
-
-    // 2. (Optional) Clear signals or reset AuthService state
-    // this.authStore.clear();
-
+    // console.log('Logging out...');
+   
+    this.storage.removeItem('authToken');
+    this.storage.removeItem('authEmail');
+    this.auth.logout();
+    sessionStorage.clear(); // Clear session storage on logout
     // 3. Redirect to login/auth page
-    this.router.navigate(['/auth']);
+    this.router.navigate(['/public/home']);
   }
 
+  gotocheckiut() {
+    console.log('Navigating to checkout...');
+    this.router.navigate(['/private/checkout']);
+  }
 }

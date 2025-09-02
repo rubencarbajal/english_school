@@ -24,7 +24,7 @@ export interface TimeSlot {
   imports: [CommonModule, ReactiveFormsModule, DatePipe, CurrencyPipe],
   templateUrl: './checkout.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-    styleUrl: './checkout.scss'
+  styleUrl: './checkout.scss'
 
 })
 export class Checkout implements OnInit {
@@ -55,6 +55,7 @@ export class Checkout implements OnInit {
   });
 
   ngOnInit(): void {
+    console.log('Checkout init');
     // 1) Try router state
     const nav = this.router.getCurrentNavigation();
     const state = (nav?.extras?.state ?? {}) as { plan?: Plan; slots?: TimeSlot[] };
@@ -74,50 +75,50 @@ export class Checkout implements OnInit {
       }
     }
   }
-// helper (put it near other privates)
-private perPlanSlotsKey() {
-  const p = this.plan();
-  return p ? `selectedSlots:${p.title}` : null;
-}
-
-// replace your pay() with this:
-async pay() {
-  this.payError.set(null);
-  this.paySuccess.set(false);
-
-  if (!this.plan() || this.slots().length === 0) {
-    this.payError.set('Missing plan or selected sessions.');
-    return;
-  }
-  if (this.paymentForm.invalid) {
-    this.paymentForm.markAllAsTouched();
-    return;
+  // helper (put it near other privates)
+  private perPlanSlotsKey() {
+    const p = this.plan();
+    return p ? `selectedSlots:${p.title}` : null;
   }
 
-  this.paying.set(true);
-  try {
-    // Simulate processing delay
-    await new Promise(res => setTimeout(res, 1000));
+  // replace your pay() with this:
+  async pay() {
+    this.payError.set(null);
+    this.paySuccess.set(false);
 
-    // Simulate success
-    this.paySuccess.set(true);
+    if (!this.plan() || this.slots().length === 0) {
+      this.payError.set('Missing plan or selected sessions.');
+      return;
+    }
+    if (this.paymentForm.invalid) {
+      this.paymentForm.markAllAsTouched();
+      return;
+    }
 
-    // 🔑 Clear ALL selection state
-    const perPlanKey = this.perPlanSlotsKey();
-    if (perPlanKey) this.storage.removeItem(perPlanKey); // <- remove per-plan cache
-    this.storage.removeItem('selectedPlan');
-    this.storage.removeItem('selectedSlots');
-    this.storage.removeItem('postLoginRedirect');
+    this.paying.set(true);
+    try {
+      // Simulate processing delay
+      await new Promise(res => setTimeout(res, 1000));
 
-    // Route based on current area (private/public)
-    const toPrivate = this.router.url.includes('/private');
-    this.router.navigate([toPrivate ? 'private/success' : 'public/success']);
-  } catch (e: any) {
-    this.payError.set(e?.message ?? 'Payment failed. Please try again.');
-  } finally {
-    this.paying.set(false);
+      // Simulate success
+      this.paySuccess.set(true);
+
+      // 🔑 Clear ALL selection state
+      const perPlanKey = this.perPlanSlotsKey();
+      if (perPlanKey) this.storage.removeItem(perPlanKey); // <- remove per-plan cache
+      this.storage.removeItem('selectedPlan');
+      this.storage.removeItem('selectedSlots');
+      this.storage.removeItem('postLoginRedirect');
+
+      // Route based on current area (private/public)
+      const toPrivate = this.router.url.includes('/private');
+      this.router.navigate([toPrivate ? 'private/success' : 'public/success']);
+    } catch (e: any) {
+      this.payError.set(e?.message ?? 'Payment failed. Please try again.');
+    } finally {
+      this.paying.set(false);
+    }
   }
-}
 
 
   // Utility for manual edit/cancel if you want to go back to scheduling

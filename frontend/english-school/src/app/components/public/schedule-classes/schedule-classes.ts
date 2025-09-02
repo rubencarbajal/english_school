@@ -89,6 +89,8 @@ export class ScheduleClasses implements OnInit {
       const savedPlan = this.storage.getItem('selectedPlan');
       if (savedPlan) {
         try { this._plan.set(JSON.parse(savedPlan) as Plan); } catch { /* ignore */ }
+      }else{
+        this.router.navigate(['private/plan'])
       }
     }
 

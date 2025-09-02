@@ -37,4 +37,6 @@ export const routes: Routes = [
             { path: 'home', component: Home },
         ]
     },
+    { path: '', pathMatch: 'full', redirectTo: 'public/home' },
+    { path: '**', pathMatch: 'full', redirectTo: 'public/home' },
 ];

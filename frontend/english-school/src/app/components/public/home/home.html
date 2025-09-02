@@ -94,50 +94,80 @@
   </section>
 
   <!-- PLANES PREVIEW -->
-  <section id="plans" class="py-16 md:py-24 bg-slate-900/60">
-    <div class="max-w-7xl mx-auto px-4">
-      <div class="flex items-end justify-between gap-6 flex-wrap">
-        <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight">Planes</h2>
-        <a routerLink="/planes" class="font-semibold py-3 px-8 rounded-lg transition-colors duration-300 bg-slate-700 hover:bg-slate-600 text-slate-200">Ver todos</a>
-      </div>
-      <div class="mt-10 grid md:grid-cols-3 gap-6">
-        <article class="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
-          <h3 class="text-2xl font-bold text-white">Starter</h3>
-          <p class="text-sm text-slate-400">Ideal para comenzar (A1–A2)</p>
-          <p class="mt-4 text-3xl font-extrabold text-white">$699 <span class="text-base text-slate-400 font-semibold">/ mes</span></p>
-          <ul class="mt-4 space-y-2 text-sm text-slate-300">
-            <li>• 2 clases en vivo/semana</li>
-            <li>• Acceso a plataforma</li>
-            <li>• Retro semanal</li>
-          </ul>
-          <a routerLink="/planes#starter" class="inline-block mt-6 w-full text-center font-semibold py-3 px-8 rounded-lg transition-colors duration-300 bg-slate-700 hover:bg-slate-600 text-slate-200">Elegir</a>
-        </article>
-        <article class="bg-slate-800/50 border border-sky-400 rounded-xl p-6 scale-[1.02] shadow-2xl shadow-sky-500/20">
-          <div class="text-xs inline-block px-2 py-1 rounded-lg bg-sky-500 text-white font-bold">Más popular</div>
-          <h3 class="text-2xl font-bold text-white mt-2">Pro</h3>
-          <p class="text-sm text-slate-400">Avanza rápido (A2–B2)</p>
-          <p class="mt-4 text-3xl font-extrabold text-white">$1,199 <span class="text-base text-slate-400 font-semibold">/ mes</span></p>
-          <ul class="mt-4 space-y-2 text-sm text-slate-300">
-            <li>• 3 clases en vivo/semana</li>
-            <li>• Club de conversación</li>
-            <li>• Simulacros de examen</li>
-          </ul>
-          <a routerLink="/planes#pro" class="inline-block mt-6 w-full text-center font-semibold py-3 px-8 rounded-lg transition-colors duration-300 bg-emerald-500 hover:bg-emerald-600 text-white">Elegir</a>
-        </article>
-        <article class="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
-          <h3 class="text-2xl font-bold text-white">Business</h3>
-          <p class="text-sm text-slate-400">Inglés laboral (B1–C1)</p>
-          <p class="mt-4 text-3xl font-extrabold text-white">$1,599 <span class="text-base text-slate-400 font-semibold">/ mes</span></p>
-          <ul class="mt-4 space-y-2 text-sm text-slate-300">
-            <li>• 2 clases 1:1 / semana</li>
-            <li>• Role play entrevistas</li>
-            <li>• Preparación de CV</li>
-          </ul>
-          <a routerLink="/planes#business" class="inline-block mt-6 w-full text-center font-semibold py-3 px-8 rounded-lg transition-colors duration-300 bg-slate-700 hover:bg-slate-600 text-slate-200">Elegir</a>
-        </article>
-      </div>
+<!-- PLANES: reemplazo completo del grid de cards -->
+<section id="plans" class="py-16 md:py-24 bg-slate-900/60">
+  <div class="max-w-7xl mx-auto px-4">
+    <div class="flex items-end justify-between gap-6 flex-wrap">
+      <h2 class="text-3xl md:text-4xl font-extrabold tracking-tight text-white">Planes</h2>
+      <a routerLink="/public/plan"
+         class="bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold py-3 px-8 rounded-lg transition-colors duration-300">
+        Ver todos
+      </a>
     </div>
-  </section>
+
+    <div class="mt-20 max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
+      @for (plan of plans; track plan.title; let i = $index) {
+        <div
+          [ngClass]="{
+            'border-sky-400 scale-105 shadow-2xl shadow-sky-500/20': plan.tag === 'Most Popular',
+            'border-slate-700': plan.tag !== 'Most Popular'
+          }"
+          class="relative bg-slate-800/50 rounded-2xl border p-8 flex flex-col h-full hover:border-sky-500 transition-all duration-300 ease-in-out">
+
+          <!-- Badge -->
+          @if (plan.tag) {
+            <div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2">
+              <span [ngClass]="plan.tagColor"
+                    class="text-white text-xs font-semibold px-4 py-1 rounded-full uppercase whitespace-nowrap">
+                {{ plan.tag }}
+              </span>
+            </div>
+          }
+
+          <!-- Title -->
+          <h3 class="text-2xl font-bold text-white text-center pt-2">{{ plan.title }}</h3>
+          <p class="mt-2 text-sm text-slate-400 text-center h-12">{{ plan.description }}</p>
+
+          <!-- Price -->
+          <div class="my-8 flex items-baseline justify-center">
+            <span class="text-5xl font-extrabold tracking-tight text-white">$ {{ plan.cost }}</span>
+            <span class="ml-1 text-xl font-semibold text-slate-300">/class</span>
+          </div>
+
+          <!-- Features -->
+          <ul class="space-y-3 text-sm text-slate-300 mb-8 flex-grow">
+            @for (feature of plan.features; track feature) {
+              <li class="flex items-start">
+                <svg class="w-5 h-5 text-emerald-500 mr-3 flex-shrink-0 mt-0.5"
+                     xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                     fill="currentColor" aria-hidden="true">
+                  <path fill-rule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 
+                          00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 
+                          00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clip-rule="evenodd" />
+                </svg>
+                <span>{{ feature }}</span>
+              </li>
+            }
+          </ul>
+
+          <!-- Button -->
+          <button
+            (click)="choose(plan)"
+            [ngClass]="{
+              'bg-sky-500 hover:bg-sky-600 text-white': plan.tag === 'Most Popular',
+              'bg-slate-700 hover:bg-slate-600 text-slate-200': plan.tag !== 'Most Popular'
+            }"
+            class="w-full font-semibold py-3 px-6 rounded-lg transition-colors duration-300 ease-in-out transform hover:scale-105 mt-auto">
+            Choose Plan
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
 
   <!-- WHY US -->
   <section id="why" class="py-16 md:py-24">
