@@ -1,0 +1,283 @@
+<section class="home-hero relative overflow-hidden">
+    <!-- Decorative dynamic background layer -->
+    <div class="absolute inset-0 -z-10 bg-dynamic"></div>
+
+    <header
+        class="pt-5 sticky top-0 z-40 backdrop-blur bg-white/70 dark:bg-slate-900/60 border-b border-white/20 dark:border-slate-800">
+        <div class="mx-auto max-w-7xl px-4 py-3 flex items-center justify-between">
+            <a routerLink="/" class="flex items-center gap-2 group">
+                <span class="text-2xl">🧭</span>
+                <span
+                    class="font-extrabold text-slate-900 dark:text-white text-xl tracking-tight group-hover:text-sky-600 transition">Fluent
+                    English</span>
+            </a>
+            <nav class="hidden md:flex items-center gap-6 text-sm">
+                <a href="#beneficios" class="hover:text-sky-600 text-slate-700 dark:text-slate-200">Beneficios</a>
+                <a href="#planes" class="hover:text-sky-600 text-slate-700 dark:text-slate-200">Planes</a>
+                <a href="#testimonios" class="hover:text-sky-600 text-slate-700 dark:text-slate-200">Testimonios</a>
+                <a href="#faq" class="hover:text-sky-600 text-slate-700 dark:text-slate-200">FAQ</a>
+            </nav>
+            <div class="flex items-center gap-2">
+                <button (click)="toggleTheme()"
+                    class="px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-sm text-slate-700 dark:text-slate-200 hover:bg-white/60 dark:hover:bg-slate-800/80">{{
+                    theme === 'dark' ? '🌙' : '☀️' }} Tema</button>
+                <a routerLink="/planes"
+                    class="hidden sm:inline-block px-4 py-2 rounded-xl bg-sky-600 text-white font-semibold shadow hover:brightness-110">Ver
+                    planes</a>
+                <a href="#contacto"
+                    class="px-4 py-2 rounded-xl border border-slate-900 dark:border-white text-slate-900 dark:text-white font-semibold hover:bg-slate-900 hover:text-white dark:hover:bg-white/10">Contáctanos</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- HERO -->
+    <div class="mx-auto max-w-7xl px-4 py-16 md:py-24 grid md:grid-cols-2 gap-10 items-center">
+        <div class="relative">
+            <h1 class="text-4xl md:text-6xl font-extrabold leading-tight text-slate-900 dark:text-white">
+                Aprende inglés con una experiencia <span class="text-sky-600">moderna y clara</span>
+            </h1>
+            <p class="mt-4 text-lg md:text-xl text-slate-700 dark:text-slate-300">
+                Clases en vivo, profesores certificados y horarios flexibles. Todo diseñado para el estándar educativo
+                de México y Latinoamérica.
+            </p>
+            <div class="mt-6 flex flex-wrap gap-3">
+                <a routerLink="/planes"
+                    class="px-6 py-3 rounded-2xl bg-sky-600 text-white font-bold shadow hover:scale-[1.02] transition">Empezar
+                    ahora</a>
+                <a href="#beneficios"
+                    class="px-6 py-3 rounded-2xl border border-slate-900 dark:border-white font-bold text-slate-900 dark:text-white hover:bg-slate-900 hover:text-white dark:hover:bg-white/10 transition">Ver
+                    beneficios</a>
+            </div>
+            <ul class="mt-5 flex flex-wrap items-center gap-4 text-sm text-slate-600 dark:text-slate-400">
+                <li class="inline-flex items-center gap-2"><span>✅</span>Factura disponible</li>
+                <li class="inline-flex items-center gap-2"><span>✅</span>Meses sin intereses *</li>
+                <li class="inline-flex items-center gap-2"><span>✅</span>Garantía de satisfacción</li>
+            </ul>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">* Sujeto a bancos participantes. Consulta
+                términos en Planes.</p>
+
+            <!-- Floating metrics card -->
+            <div class="hero-metric-card">
+                <div class="grid grid-cols-3 divide-x divide-white/20 dark:divide-slate-700">
+                    <div class="p-4">
+                        <div class="text-3xl font-extrabold text-white">A1–C1</div>
+                        <div class="text-xs text-white/80">Niveles</div>
+                    </div>
+                    <div class="p-4">
+                        <div class="text-3xl font-extrabold text-white">+80%</div>
+                        <div class="text-xs text-white/80">Aprobación</div>
+                    </div>
+                    <div class="p-4">
+                        <div class="text-3xl font-extrabold text-white">24/7</div>
+                        <div class="text-xs text-white/80">Plataforma</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Visual panel -->
+        <div class="relative">
+            <div class="visual-panel">
+                <div class="grid grid-cols-2 gap-4 h-full">
+                    <div class="tile from-sky-500 to-cyan-400">Clases en vivo</div>
+                    <div class="tile from-emerald-500 to-teal-400">Profes certificados</div>
+                    <div class="tile from-fuchsia-500 to-violet-500">Conversación</div>
+                    <div class="tile from-amber-500 to-orange-500">Certificación</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Beneficios -->
+<section id="beneficios" class="py-16 md:py-24 bg-white dark:bg-slate-900">
+    <div class="max-w-7xl mx-auto px-4">
+        <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white">Beneficios clave</h2>
+        <div class="mt-10 grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="card">
+                <div class="text-3xl">🧑‍🏫</div>
+                <h3 class="mt-3 font-bold text-lg">Profes certificados</h3>
+                <p class="text-sm text-slate-600 dark:text-slate-400">Metodología comunicativa con docentes con
+                    experiencia.</p>
+            </div>
+            <div class="card">
+                <div class="text-3xl">⏰</div>
+                <h3 class="mt-3 font-bold text-lg">Horarios flexibles</h3>
+                <p class="text-sm text-slate-600 dark:text-slate-400">Mañana, tarde o noche. Reagenda desde tu panel.
+                </p>
+            </div>
+            <div class="card">
+                <div class="text-3xl">💳</div>
+                <h3 class="mt-3 font-bold text-lg">Pagos accesibles</h3>
+                <p class="text-sm text-slate-600 dark:text-slate-400">Meses sin intereses y becas por desempeño.</p>
+            </div>
+            <div class="card">
+                <div class="text-3xl">🎓</div>
+                <h3 class="mt-3 font-bold text-lg">Certificación</h3>
+                <p class="text-sm text-slate-600 dark:text-slate-400">TOEFL®, IELTS® y Cambridge con simuladores.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Planes (preview) -->
+<section id="planes" class="py-16 md:py-24 bg-slate-50 dark:bg-slate-950">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="flex items-end justify-between gap-6 flex-wrap">
+            <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white">Planes</h2>
+            <a routerLink="/planes"
+                class="px-4 py-2 rounded-xl border-2 border-sky-600 text-sky-600 font-bold hover:bg-sky-600 hover:text-white">Ver
+                todos</a>
+        </div>
+        <div class="mt-10 grid md:grid-cols-3 gap-6">
+            <article class="plan-card">
+                <h3 class="text-xl font-extrabold">Starter</h3>
+                <p class="muted">Ideal para comenzar (A1–A2)</p>
+                <p class="price">$699 <span>/ mes</span></p>
+                <ul class="bullets">
+                    <li>2 clases en vivo/semana</li>
+                    <li>Acceso a plataforma</li>
+                    <li>Retro semanal</li>
+                </ul>
+                <a routerLink="/planes#starter" class="btn-primary">Elegir</a>
+            </article>
+            <article class="plan-card plan-featured">
+                <div class="badge">Más popular</div>
+                <h3 class="text-xl font-extrabold mt-2">Pro</h3>
+                <p class="muted">Avanza rápido (A2–B2)</p>
+                <p class="price">$1,199 <span>/ mes</span></p>
+                <ul class="bullets">
+                    <li>3 clases en vivo/semana</li>
+                    <li>Club de conversación</li>
+                    <li>Simulacros de examen</li>
+                </ul>
+                <a routerLink="/planes#pro" class="btn-accent">Elegir</a>
+            </article>
+            <article class="plan-card">
+                <h3 class="text-xl font-extrabold">Business</h3>
+                <p class="muted">Inglés laboral (B1–C1)</p>
+                <p class="price">$1,599 <span>/ mes</span></p>
+                <ul class="bullets">
+                    <li>2 clases 1:1 / semana</li>
+                    <li>Role play entrevistas</li>
+                    <li>Preparación de CV</li>
+                </ul>
+                <a routerLink="/planes#business" class="btn-primary">Elegir</a>
+            </article>
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="py-16 md:py-24 bg-gradient-to-br from-slate-900 to-slate-800">
+    <div class="max-w-5xl mx-auto px-4">
+        <div class="rounded-3xl p-8 md:p-12 bg-white/5 backdrop-blur border border-white/10 text-white shadow-xl">
+            <h2 class="text-3xl md:text-4xl font-extrabold">Agenda tu clase muestra</h2>
+            <p class="mt-3 text-white/90">Recibe una evaluación de nivel sin costo y recomendaciones personalizadas.</p>
+            <div class="mt-6 flex flex-wrap gap-3">
+                <a routerLink="/planes"
+                    class="px-6 py-3 rounded-2xl bg-white text-slate-900 font-bold hover:brightness-110">Ver planes</a>
+                <a href="#contacto"
+                    class="px-6 py-3 rounded-2xl border-2 border-white font-bold hover:bg-white/10">Solicitar clase
+                    muestra</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonios -->
+<section id="testimonios" class="py-16 md:py-24 bg-white dark:bg-slate-900">
+    <div class="max-w-7xl mx-auto px-4">
+        <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white">Testimonios</h2>
+        <div class="mt-10 grid md:grid-cols-3 gap-6">
+            <figure class="card">
+                <blockquote class="text-slate-700 dark:text-slate-300">“En 6 meses pasé de cero a entrevistas en inglés.
+                    Las clases son dinámicas y claras.”</blockquote>
+                <figcaption class="mt-4 text-sm font-semibold">Mariana · CDMX</figcaption>
+            </figure>
+            <figure class="card">
+                <blockquote class="text-slate-700 dark:text-slate-300">“El club de conversación me ayudó a perder el
+                    miedo a hablar.”</blockquote>
+                <figcaption class="mt-4 text-sm font-semibold">Luis · Guadalajara</figcaption>
+            </figure>
+            <figure class="card">
+                <blockquote class="text-slate-700 dark:text-slate-300">“Obtuve la certificación para mi visa de trabajo.
+                    Excelente acompañamiento.”</blockquote>
+                <figcaption class="mt-4 text-sm font-semibold">Daniela · Monterrey</figcaption>
+            </figure>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ + Contacto -->
+<section id="faq" class="py-16 md:py-24 bg-slate-50 dark:bg-slate-950">
+    <div class="max-w-5xl mx-auto px-4">
+        <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white">Preguntas frecuentes</h2>
+        <div class="mt-8 divide-y divide-slate-200 dark:divide-slate-800 border rounded-2xl bg-white dark:bg-slate-900">
+            <details class="p-5 group" open>
+                <summary
+                    class="cursor-pointer font-semibold flex items-center justify-between text-slate-900 dark:text-white">
+                    ¿Cómo son las clases? <span class="text-slate-400 group-open:rotate-180 transition">⌃</span>
+                </summary>
+                <p class="mt-3 text-slate-600 dark:text-slate-400 text-sm">Sesiones en vivo por videollamada, materiales
+                    propios y práctica constante de speaking, listening, reading y writing.</p>
+            </details>
+            <details class="p-5 group">
+                <summary
+                    class="cursor-pointer font-semibold flex items-center justify-between text-slate-900 dark:text-white">
+                    ¿Puedo pagar a MSI? <span class="text-slate-400 group-open:rotate-180 transition">⌃</span></summary>
+                <p class="mt-3 text-slate-600 dark:text-slate-400 text-sm">Sí, con bancos participantes. Revisa las
+                    opciones en Planes.</p>
+            </details>
+            <details class="p-5 group">
+                <summary
+                    class="cursor-pointer font-semibold flex items-center justify-between text-slate-900 dark:text-white">
+                    ¿Entregan factura? <span class="text-slate-400 group-open:rotate-180 transition">⌃</span></summary>
+                <p class="mt-3 text-slate-600 dark:text-slate-400 text-sm">Sí, facturamos con datos fiscales de México.
+                    Solicítala desde tu panel.</p>
+            </details>
+        </div>
+    </div>
+
+    <div id="contacto" class="max-w-4xl mx-auto px-4 mt-16">
+        <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white">¿Tienes dudas? Escríbenos</h2>
+        <form
+            class="mt-8 grid gap-4 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm"
+            (submit)="$event.preventDefault()">
+            <div>
+                <label class="block text-sm font-semibold text-slate-900 dark:text-white">Nombre</label>
+                <input name="name" required
+                    class="mt-1 w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-4 py-3 focus:outline-none focus:ring-2 focus:ring-sky-600"
+                    placeholder="Tu nombre" />
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-slate-900 dark:text-white">Email</label>
+                <input type="email" name="email" required
+                    class="mt-1 w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-4 py-3 focus:outline-none focus:ring-2 focus:ring-sky-600"
+                    placeholder="tu@mail.com" />
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-slate-900 dark:text-white">Tu pregunta</label>
+                <textarea name="question" rows="4" required
+                    class="mt-1 w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-4 py-3 focus:outline-none focus:ring-2 focus:ring-sky-600"
+                    placeholder="Cuéntanos en qué te ayudamos"></textarea>
+            </div>
+            <button class="mt-2 px-6 py-3 rounded-2xl bg-sky-600 text-white font-bold hover:brightness-110"
+                type="submit">Enviar</button>
+            <p class="text-sm text-slate-600 dark:text-slate-400">Este formulario se conecta a tu endpoint <code
+                    class="font-mono">POST /api/contact</code>.</p>
+        </form>
+    </div>
+</section>
+
+<footer class="py-10 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800">
+    <div
+        class="max-w-7xl mx-auto px-4 flex flex-wrap gap-6 items-center justify-between text-sm text-slate-600 dark:text-slate-400">
+        <p>© 2025 Fluent English.</p>
+        <nav class="flex gap-4">
+            <a routerLink="/aviso-de-privacidad" class="hover:text-sky-600">Aviso de privacidad</a>
+            <a routerLink="/terminos" class="hover:text-sky-600">Términos</a>
+            <a routerLink="/planes" class="hover:text-sky-600">Planes</a>
+        </nav>
+    </div>
+</footer>

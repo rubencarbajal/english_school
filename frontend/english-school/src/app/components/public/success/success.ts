@@ -40,6 +40,13 @@ export class Success implements OnInit {
   totalCost = computed(() => this.totalClasses() * this.pricePerClass());
 
   ngOnInit(): void {
+
+    const plan = this.plan();
+    if (plan) this.storage.removeItem(`selectedSlots:${plan.title}`);
+    this.storage.removeItem('selectedPlan');
+    this.storage.removeItem('selectedSlots');
+    this.storage.removeItem('postLoginRedirect');
+
     // 1) from router state
     const nav = this.router.getCurrentNavigation();
     const state = (nav?.extras?.state ?? {}) as { plan?: Plan; slots?: TimeSlot[]; orderId?: string; paidAt?: string | Date };

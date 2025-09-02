@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { ActivatedRoute, RouterOutlet } from '@angular/router';
 import { UpperNav } from '../upper-nav/upper-nav';
 
 @Component({
@@ -8,4 +8,11 @@ import { UpperNav } from '../upper-nav/upper-nav';
   templateUrl: './layout.html',
   styleUrl: './layout.scss'
 })
-export class Layout { }
+export class Layout { 
+  home: boolean;
+
+  constructor(private router: ActivatedRoute) {
+    this.home = this.router.snapshot.routeConfig?.path === 'home';
+  }
+  
+}

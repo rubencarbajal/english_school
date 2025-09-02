@@ -1,7 +1,11 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { CommonModule, NgClass } from '@angular/common';
-import { FormBuilder, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors, FormGroup } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+
+// NEW: bring in your SSR-safe storage + auth services (adjust paths if needed)
+import { Storage } from '../../../../services/storage';
+import { Auth } from '../../../../services/auth';
 
 type Mode = 'login' | 'register';
 
@@ -9,12 +13,16 @@ type Mode = 'login' | 'register';
   selector: 'app-login',
   imports: [ReactiveFormsModule, CommonModule, RouterLink, NgClass],
   templateUrl: './login.html',
-  styleUrl: './login.scss',  
+  styleUrl: './login.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Login {
   private fb = inject(FormBuilder);
   private router = inject(Router);
+
+  // NEW DI
+  private storage = inject(Storage);
+  private auth = inject(Auth);
 
   // UI state
   mode = signal<Mode>('login');
@@ -50,6 +58,55 @@ export class Login {
     this.authError.set(null);
   }
 
+  // ===== NEW: central post-auth navigation logic =====
+  private getStoredPlanAndSlots(): { plan: any | null; slots: { date: Date; time: string }[] } {
+    const planJson = this.storage.getItem('selectedPlan');
+    const slotsJson = this.storage.getItem('selectedSlots');
+
+    let plan: any | null = null;
+    let slots: { date: Date; time: string }[] = [];
+
+    if (planJson) {
+      try { plan = JSON.parse(planJson); } catch {}
+    }
+    if (slotsJson) {
+      try {
+        const parsed: Array<{ date: string; time: string }> = JSON.parse(slotsJson);
+        slots = parsed.map(s => ({ date: new Date(s.date), time: s.time }));
+      } catch {}
+    }
+    return { plan, slots };
+  }
+
+  private navigateAfterAuth(): void {
+    const redirect = this.storage.getItem('postLoginRedirect');
+
+    // 1) Explicit redirect set earlier (e.g., schedule → checkout)
+    if (redirect) {
+      this.storage.removeItem('postLoginRedirect');
+
+      if (redirect === 'private/checkout') {
+        const { plan, slots } = this.getStoredPlanAndSlots();
+        if (plan && slots.length > 0) {
+          this.router.navigate([redirect], { state: { plan, slots } });
+          return;
+        }
+      }
+      this.router.navigate([redirect]);
+      return;
+    }
+
+    // 2) Otherwise, if user already selected plan + slots → go to checkout
+    const { plan, slots } = this.getStoredPlanAndSlots();
+    if (plan && slots.length > 0) {
+      this.router.navigate(['private/checkout'], { state: { plan, slots } });
+    } else {
+      // 3) Plain login/register → go home
+      this.router.navigate(['private/home']);
+    }
+  }
+
+  // ===== UPDATED: Login =====
   async submitLogin() {
     this.authError.set(null);
     if (this.loginForm.invalid) {
@@ -61,7 +118,12 @@ export class Login {
       // Simulate sign-in (accepts any valid email & password)
       await fakeLatency(600);
       await fakeSignIn(this.lf.email.value!, this.lf.password.value!);
-      this.router.navigate(['private/dashboard']);
+
+      // mark session as logged in
+      this.auth.login(this.lf.email.value!);
+
+      // smart redirect
+      this.navigateAfterAuth();
     } catch (e: any) {
       this.authError.set(e?.message ?? 'Unable to sign in.');
     } finally {
@@ -69,6 +131,7 @@ export class Login {
     }
   }
 
+  // ===== UPDATED: Register =====
   async submitRegister() {
     this.authError.set(null);
     if (this.registerForm.invalid) {
@@ -79,7 +142,12 @@ export class Login {
     try {
       // Simulate sign-up then auto-login
       await fakeLatency(800);
-      this.router.navigate(['private/dashboard']);
+
+      const email = this.registerForm.get('email')?.value as string || 'newuser@example.com';
+      this.auth.login(email);
+
+      // same redirect rules as login
+      this.navigateAfterAuth();
     } catch (e: any) {
       this.authError.set(e?.message ?? 'Unable to register.');
     } finally {

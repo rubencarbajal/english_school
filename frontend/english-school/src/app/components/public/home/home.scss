@@ -1,0 +1,93 @@
+
+
+// =============================
+:host {
+/* Dynamic variables controlled by TS */
+--hue: 210;
+--angle: 45deg;
+--blob-x: 50%;
+--blob-y: 40%;
+--parallax-x: 0px;
+--parallax-y: 0px;
+}
+
+
+.home-hero {
+position: relative;
+}
+
+
+.bg-dynamic {
+/* Layered gradients with subtle motion */
+position: absolute;
+inset: 0;
+background:
+radial-gradient(800px 500px at var(--blob-x) var(--blob-y), hsl(var(--hue) 90% 70% / 0.35), transparent 60%),
+conic-gradient(from var(--angle), hsl(var(--hue) 90% 98%), hsl(calc(var(--hue) + 40) 90% 95%), hsl(calc(var(--hue) - 20) 90% 96%), hsl(var(--hue) 90% 98%));
+filter: saturate(1.1);
+transform: translate(var(--parallax-x), var(--parallax-y));
+}
+
+
+.hero-metric-card {
+position: absolute;
+left: 0;
+bottom: -2rem;
+transform: translateY(50%);
+backdrop-filter: blur(8px);
+background: linear-gradient(180deg, hsl(var(--hue) 90% 40% / 0.9), hsl(var(--hue) 90% 30% / 0.9));
+border: 1px solid rgba(255,255,255,0.2);
+box-shadow: 0 10px 30px rgba(2, 6, 23, 0.25);
+border-radius: 1.25rem;
+color: #fff;
+}
+
+
+.visual-panel {
+aspect-ratio: 4 / 3;
+border-radius: 1.5rem;
+padding: 1.25rem;
+background: rgba(255,255,255,0.65);
+border: 1px solid rgba(255,255,255,0.6);
+box-shadow: 0 20px 60px rgba(2, 6, 23, 0.2);
+backdrop-filter: blur(10px);
+transform: translate(var(--parallax-x), var(--parallax-y));
+}
+
+
+.tile {
+@apply rounded-2xl text-white font-bold flex items-center justify-center text-center p-3 bg-gradient-to-br shadow;
+}
+
+
+.card {
+@apply p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition;
+}
+
+
+.plan-card {
+@apply rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm p-6 hover:shadow-md transition;
+}
+.plan-featured {
+border-width: 2px;
+border-color: rgb(2 132 199); /* sky-600 */
+transform: scale(1.02);
+box-shadow: 0 20px 50px rgba(2,132,199,0.2);
+}
+.badge { @apply text-xs inline-block px-2 py-1 rounded-lg bg-sky-600 text-white font-bold; }
+.price { @apply mt-4 text-3xl font-extrabold text-slate-900 dark:text-white; }
+.price span { @apply text-base font-semibold text-slate-500 dark:text-slate-400; }
+.bullets { @apply mt-4 space-y-2 text-sm text-slate-700 dark:text-slate-300; }
+.btn-primary { @apply mt-6 inline-block w-full text-center px-4 py-3 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold hover:brightness-110; }
+.btn-accent { @apply mt-6 inline-block w-full text-center px-4 py-3 rounded-xl bg-sky-600 text-white font-bold hover:brightness-110; }
+.muted { @apply text-slate-600 dark:text-slate-400 text-sm; }
+
+
+/* Ensure strong contrast on light backgrounds */
+:host, .text-slate-900 { color: #0f172a; }
+
+
+/* Small screens tweaks */
+@media (max-width: 768px) {
+.hero-metric-card { display: none; }
+}

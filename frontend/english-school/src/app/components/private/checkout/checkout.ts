@@ -74,41 +74,51 @@ export class Checkout implements OnInit {
       }
     }
   }
+// helper (put it near other privates)
+private perPlanSlotsKey() {
+  const p = this.plan();
+  return p ? `selectedSlots:${p.title}` : null;
+}
 
-  async pay() {
-    this.payError.set(null);
-    this.paySuccess.set(false);
+// replace your pay() with this:
+async pay() {
+  this.payError.set(null);
+  this.paySuccess.set(false);
 
-    if (!this.plan() || this.slots().length === 0) {
-      this.payError.set('Missing plan or selected sessions.');
-      return;
-    }
-    if (this.paymentForm.invalid) {
-      this.paymentForm.markAllAsTouched();
-      return;
-    }
-
-    this.paying.set(true);
-    try {
-      // Simulate processing delay
-      await new Promise(res => setTimeout(res, 1000));
-
-      // Simulate success
-      this.paySuccess.set(true);
-
-      // Clear transient state
-      this.storage.removeItem('selectedPlan');
-      this.storage.removeItem('selectedSlots');
-
-      // Route based on current area (private/public)
-      const toPrivate = this.router.url.includes('/private');
-      this.router.navigate([toPrivate ? 'private/success' : 'public/success']);
-    } catch (e: any) {
-      this.payError.set(e?.message ?? 'Payment failed. Please try again.');
-    } finally {
-      this.paying.set(false);
-    }
+  if (!this.plan() || this.slots().length === 0) {
+    this.payError.set('Missing plan or selected sessions.');
+    return;
   }
+  if (this.paymentForm.invalid) {
+    this.paymentForm.markAllAsTouched();
+    return;
+  }
+
+  this.paying.set(true);
+  try {
+    // Simulate processing delay
+    await new Promise(res => setTimeout(res, 1000));
+
+    // Simulate success
+    this.paySuccess.set(true);
+
+    // 🔑 Clear ALL selection state
+    const perPlanKey = this.perPlanSlotsKey();
+    if (perPlanKey) this.storage.removeItem(perPlanKey); // <- remove per-plan cache
+    this.storage.removeItem('selectedPlan');
+    this.storage.removeItem('selectedSlots');
+    this.storage.removeItem('postLoginRedirect');
+
+    // Route based on current area (private/public)
+    const toPrivate = this.router.url.includes('/private');
+    this.router.navigate([toPrivate ? 'private/success' : 'public/success']);
+  } catch (e: any) {
+    this.payError.set(e?.message ?? 'Payment failed. Please try again.');
+  } finally {
+    this.paying.set(false);
+  }
+}
+
 
   // Utility for manual edit/cancel if you want to go back to scheduling
   backToSchedule() {
