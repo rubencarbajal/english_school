@@ -1,77 +1,69 @@
-import { Component, HostListener, OnDestroy, OnInit, Renderer2, ElementRef } from '@angular/core';
+import { Component, Inject, PLATFORM_ID, OnInit, OnDestroy, Renderer2, ElementRef } from '@angular/core';
+import { isPlatformBrowser, CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-home',
-  imports: [],
   templateUrl: './home.html',
-  styleUrl: './home.scss'
+  styleUrl: './home.scss',
+  imports: [CommonModule, RouterLink]
 })
-export class Home implements  OnInit, OnDestroy {
-  private rafId: number | null = null;
-  private hue = 210; // base hue (blue-ish). Will drift subtly.
-  private angle = 45; // gradient angle
-  private t = 0; // time accumulator for animations
+export class Home implements OnInit, OnDestroy {
+private rafId: number | null = null;
+private t = 0; // time accumulator for background motion
+private browser = false;
 
 
-  // Theme: 'light' | 'dark'
-  theme: 'light' | 'dark' = 'light';
+constructor(
+@Inject(PLATFORM_ID) platformId: Object,
+private r2: Renderer2,
+private host: ElementRef<HTMLElement>
+) {
+this.browser = isPlatformBrowser(platformId);
+}
 
 
-  constructor(private r2: Renderer2, private host: ElementRef<HTMLElement>) { }
+ngOnInit(): void {
+// Initialize CSS variables for dynamic gradient
+this.setVar('--hue-a', '200');
+this.setVar('--hue-b', '220');
+this.setVar('--angle', '35deg');
+this.setVar('--blob-x', '60%');
+this.setVar('--blob-y', '40%');
 
 
-  ngOnInit(): void {
-    // Initialize CSS variables for dynamic background
-    this.setVar('--hue', String(this.hue));
-    this.setVar('--angle', this.angle + 'deg');
+if (!this.browser) return; // SSR guard
 
 
-    // Kick off animation loop
-    const animate = () => {
-      this.t += 0.016; // ~60fps
-      // Gentle hue oscillation
-      const hue = 200 + Math.sin(this.t * 0.25) * 20; // 180–220
-      const angle = 30 + Math.sin(this.t * 0.18) * 30; // 0–60
-      this.setVar('--hue', hue.toFixed(2));
-      this.setVar('--angle', angle.toFixed(2) + 'deg');
+const animate = () => {
+this.t += 0.016; // ≈60fps
+const hueBase = 205 + Math.sin(this.t * 0.15) * 18; // soft drift
+const hueA = hueBase;
+const hueB = hueBase + 25;
+const angle = 25 + Math.sin(this.t * 0.1) * 25;
+const bx = 55 + Math.sin(this.t * 0.35) * 18; // 37–73
+const by = 45 + Math.cos(this.t * 0.28) * 16; // 29–61
 
 
-      // Subtle blob positions
-      const x = 50 + Math.sin(this.t * 0.4) * 20; // 30–70
-      const y = 40 + Math.cos(this.t * 0.33) * 18; // 22–58
-      this.setVar('--blob-x', x.toFixed(2) + '%');
-      this.setVar('--blob-y', y.toFixed(2) + '%');
+this.setVar('--hue-a', hueA.toFixed(2));
+this.setVar('--hue-b', hueB.toFixed(2));
+this.setVar('--angle', angle.toFixed(2) + 'deg');
+this.setVar('--blob-x', bx.toFixed(2) + '%');
+this.setVar('--blob-y', by.toFixed(2) + '%');
 
 
-      this.rafId = requestAnimationFrame(animate);
-    };
-    this.rafId = requestAnimationFrame(animate);
-  }
+this.rafId = requestAnimationFrame(animate);
+};
+this.rafId = requestAnimationFrame(animate);
+}
 
 
-  ngOnDestroy(): void {
-    if (this.rafId !== null) cancelAnimationFrame(this.rafId);
-  }
+ngOnDestroy(): void {
+if (this.rafId !== null && this.browser) cancelAnimationFrame(this.rafId);
+}
 
 
-  private setVar(name: string, value: string) {
-    this.r2.setStyle(this.host.nativeElement, name, value);
-  }
-
-
-  @HostListener('document:mousemove', ['$event'])
-  onMouseMove(e: MouseEvent) {
-    // Parallax intensity
-    const ix = (e.clientX / window.innerWidth - 0.5) * 2; // -1..1
-    const iy = (e.clientY / window.innerHeight - 0.5) * 2; // -1..1
-    this.setVar('--parallax-x', (ix * 6).toFixed(2) + 'px');
-    this.setVar('--parallax-y', (iy * 6).toFixed(2) + 'px');
-  }
-
-
-  toggleTheme() {
-    this.theme = this.theme === 'light' ? 'dark' : 'light';
-    const root = document.documentElement;
-    if (this.theme === 'dark') root.classList.add('dark'); else root.classList.remove('dark');
-  }
+private setVar(name: string, value: string) {
+this.r2.setStyle(this.host.nativeElement, name, value);
+}
 }
